@@ -1,0 +1,206 @@
+---
+title: "Lab 1"
+author: "Tyron Samaroo"
+output: pdf_document
+date: "11:59PM February 8, 2020"
+---
+
+You should have RStudio installed to edit this file. You will write code in places marked "TO-DO" to complete the problems. Some of this will be a pure programming assignment. The tools for the solutions to these problems can be found in the class practice lectures. I want you to use the methods I taught you, not for you to google and come up with whatever works. You won't learn that way.
+
+To "hand in" the homework, you should compile or publish this file into a PDF that includes output of your code. Once it's done, push by the deadline to your repository in a directory called "labs".
+
+* Print out the numerical constant pi with ten digits after the decimal point using the internal constant `pi`.
+
+```{r}
+options(digits = 10)
+pi
+```
+
+
+* Sum up the first 100 terms of the series 1 + 1/2 + 1/4 + 1/8 + ...
+
+```{r}
+1/2 ^ (0:99) #Generates 1 + 1/2 ...
+sum(1/2 ^ (0:99)) 
+```
+
+* Find the product of the first 20 terms of `1/3 * 1/6 * 1/9 *` ...
+
+```{r}
+#
+prod(1 / seq(3, 60, by = 3))
+
+```
+
+
+* Find the product of the first 500 terms of `1 * 1/2 * 1/4 * 1/8 *` ...
+
+```{r}
+prod(1/2 ^ (0:499))
+```
+
+Is this answer *exactly* correct? 
+
+No because will give wrong computation. Not precise answer. The answer is almost 0 but not exactly 0
+
+* Figure out a means to express the answer more exactly. Not compute exactly, but express more exactly.
+
+```{r}
+#Use Ln to help.
+log(1/2 ^ (0:499))
+sum(log(1/2 ^ (0:499)))
+
+```
+
+* Create the sequence `x = [Inf, 20, 18, ..., -20]`.
+
+```{r}
+#Use c to concat
+x = c(Inf,seq(from = 20, to = -20, by = -2))
+x
+
+```
+
+Create the sequence `x = [log_3(Inf), log_3(100), log_3(98), ... log_3(-20)]`.
+
+```{r}
+x = c(Inf,seq(from = 100, to=-20, by = -2))
+# Getting NaN no good
+x = log(x, base = 3)
+x
+```
+
+Comment on the appropriateness of the non-numeric values.
+
+Nan come from log(-num). Inf come from log3(Inf and log -inf come from log3(0)
+
+
+* Create a vector of booleans where the entry is true if `x[i]` is positive and finite.
+
+```{r}
+x
+x > 0 & x != Inf & !is.nan(x)
+is_pos_real_bool = x > 0 & x != Inf & !is.nan(x)
+is.finite(x) #Another way
+is_pos_real_bool
+
+
+```
+
+* Locate the indices of the non-numbers in this vector. Hint: use the `which` function.
+
+```{r}
+#Theres are values that arent finite 
+which(!is_pos_real_bool) 
+
+```
+
+* Locate the indices of the infinite quantities in this vector. Hint: use the `which` function.
+
+```{r}
+
+x
+which(x == Inf | x == -Inf)
+is.infinite(x) # Return vector location of -inf and inf
+which(is.infinite(x)) # return index of those location
+
+
+
+```
+
+* Locate the indices of the min and max in this vector. Hint: use the `which.min` and `which.max` functions.
+
+```{r}
+x[is.infinite(x)] = NA 
+x
+which.min(x)
+which.max(x)
+```
+
+* Count the number of unique values in `x`.
+
+```{r}
+#TO-DO
+x
+length(unique(x))
+```
+
+* Cast `x` to a factor. Do the number of levels make sense?
+
+```{r}
+factor(x)
+#as.factor(x) # Same
+```
+
+* Cast `x` to integers. What do we learn about R's infinity representation in the integer data type?
+
+```{r}
+x
+as.integer(x)
+```
+
+* Use `x` to create a new vector `y` containing only real numbers.
+
+```{r}
+x
+y = x[is.finite(x)]
+y
+length(y) #Different size of vector
+```
+
+* Use the left rectangle method to numerically integrate x^2 from 0 to 1 with rectangle size 1e-6.
+
+```{r}
+sum(seq(0, 1 - 1e-6, by = 1e-6) ^ 2) * 1e-6
+```
+
+
+* Calculate the average of 100 realizations of standard Bernoullis in one line using the `sample` function.
+
+```{r}
+mean(sample(c(0,1) ,size = 100, replace = TRUE))
+```
+
+
+* Calculate the average of 500 realizations of Bernoullis with p = 0.9 in one line using the `sample` function.
+
+```{r}
+#TO-DO
+#Probability of 1 is 0.9
+# realization_bernoullis = sample(c(0, 1),
+#                                 size = 500,
+#                                 replace = TRUE,
+#                                 prob = c(0.1, 0.9))
+# mean(realization_bernoullis)
+
+
+mean(sample(c(0,1),size = 500, replace = TRUE, prob = c(0.1, 0.9)))
+```
+
+* In class we considered a variable `x_3` which measured "criminality". We imagined L = 4 levels "none", "infraction", "misdimeanor" and "felony". Create a variable `x3` here with 100 random elements (equally probable). Create it as a nominal (i.e. unordered) factor.
+
+```{r}
+x_3 = sample(c("none", "infraction", "misdimeanor", "felony"), 
+             size = 100, 
+             replace = TRUE, 
+             prob = c(.25, .25, .25, .25))
+factor(x_3)
+```
+
+* Use `x_3` to create `x_3_bin`, a binary feature where 0 is no crime and 1 is any crime.
+
+```{r}
+x_3
+x_3_bin = ifelse(x_3 == "none", 1, 0)
+x_3_bin
+```
+
+* Use `x_3` to create `x_3_ord`, an ordered, nominal factor variable. Ensure the proper ordinal ordering.
+
+```{r}
+sample_criminality= sample(c("none", "infraction", "misdimeanor", "felony"), 
+             size = 100, 
+             replace = TRUE)
+x_3_ord = factor(sample_criminality, levels = c("none", "infraction", "misdimeanor", "felony"), ordered = TRUE)
+x_3_ord
+```
