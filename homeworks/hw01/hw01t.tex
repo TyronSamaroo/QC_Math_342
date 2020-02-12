@@ -156,35 +156,65 @@ This model is bad because based on how it is phrased we are restricted with one 
 
 \easysubproblem{Devise a metric for gauging the main input. Call this $x_1$ going forward.}\spc{4}
 
+A metric for gauging the main input can be represented as $x_1$ which can be whether or not a person ate an apple 
+
 \easysubproblem{Devise a metric for gauging the main output. Call this $y$ going forward.}\spc{4}
+
+A metric for gauging the main output can be represented as $y$ which would be whether or not the person did not have a visit to the doctor
 
 \easysubproblem{What is $\mathcal{Y}$ mathematically?}\spc{3}
 
+$\mathcal{Y}$ mathematically would be the phenomenon that we are trying predict when given a true function $t$ with causal inputs $(z_1, \ldots, z_t)$
+
+
 \easysubproblem{Briefly describe $z_1, \ldots, z_t$ in English where $y = t(z_1, \ldots, z_t)$ in this \emph{phenomenon} (not \emph{model}).}\spc{3}
 
+The $z_1, \ldots, z_t$ are the true casual inputs that can be passed in the function $t$ to predict the phenomenon.
+
 \easysubproblem{From this point on, you only observe $x_1$. What is $p$ mathematically?}\spc{1}
+
+If we let $p$ denote the number of features or attribute, so that we have a vector $x_i := [x_i_1, \ldots, x_i_p]$ 
 
 
 \intermediatesubproblem{What is $\mathcal{X}$ mathematically? If your information contained in $x_1$ is non-numeric, you must coerce it to be numeric at this point.}\spc{3}
 
+$\mathcal{X}$ mathematically is the input space such that $x_i := [x_i_1, \ldots, x_i_p] \in \mathcal{X}$
+
 \easysubproblem{How did we term the functional relationship between $y$ and $x_1$? Is it approximate or equals?}\spc{3}
 
+We term $x_1$ to be one of the features which will be a independent variable, but $x_1$ is just an approximation for $y$.
 
-\easysubproblem{Briefly describe \emph{superivised learning}.}\spc{5}
+\easysubproblem{Briefly describe \emph{supervised learning}.}\spc{5}
 
-\easysubproblem{Why is \emph{superivised learning} an \emph{empirical solution} and not an \emph{analytic solution}?}\spc{3}
+Supervised learning is where we have historical data which can be consider training data that is labeled which we can learn from. 
+
+\easysubproblem{Why is \ewmph{supervised learning} an \emph{empirical solution} and not an \emph{analytic solution}?}\spc{3}
+
+Supervised learning is an \emph{empirical solution} because it is using historical data to make a prediction where analytical solution is given from an integral or derivative. 
 
 \intermediatesubproblem{From this point on, assume we are involved in supervised learning to achieve the goal you stated in the previous question. Briefly describe what $\mathbb{D}$ would look like here.}\spc{3}
 
+$\mathbb{D} = [\mathcal{X}, y]$ $\mathbb{D}$ is our data that has historical examples with label responses. 
+
 \intermediatesubproblem{Briefly describe the role of $\mathcal{H}$ and $\mathcal{A}$ here.}\spc{3}
+
+$\mathcal{H}$ is a set of candidate function h that can approximate f.
+$\mathcal{A}$ an algorithm that takes $\mathcal{H}$ and $\mathbb{D}$ and provides g $\in \mathcal{H}$
+as the best approximation of f which would be h*
 
 \easysubproblem{If $g = \mathcal{A}(\mathbb{D}, \mathcal{H})$, what should the domain and range of $g$ be?}\spc{3}
 
+
+
 \easysubproblem{Is $g \in \mathcal{H}$? Why or why not?}\spc{3}
+
+$g \in \mathcal{H}$ because we defined an algorithm \mathcal{A}
 
 \easysubproblem{Given a never-before-seen value of $x_1$ which we denote $x^*$, what formula would we use to predict the corresponding value of the output? Denote this prediction $\hat{y}^*$.}\spc{1}
 
 \intermediatesubproblem{Is it reasonable to assume $f \in \mathcal{H}$? Why or why not?}\spc{2}
+
+Generally speaking no but there is a $h* \in \matcal{H}$ which is the closes possible model to f
 
 \easysubproblem{In the general modeling setup, if $f \notin \mathcal{H}$, what are the three sources of error? Copy the equation from the class notes. Denote the names of each error and provide a sentence explanation of each. Denote also $e$ and $\mathcal{E}$ using underbraces / overbraces.}\spc{6}
 
