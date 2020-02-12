@@ -82,10 +82,16 @@ The rating agencies were wrong with their prediction because they did not have a
 
 \easysubproblem{What is the difference between \emph{risk} and \emph{uncertainty} according to Silver's definitions?}\spc{4}
 
+According to Silver \emph{risk} is define as something you can put a value or price on.\emph{Uncertainty} is define as risk that is hard to measure there's no good way to measure this. An example that sums that up provided by silver would be risk is like the greases the wheels of a free-market economy while uncertainty grinds them to a halt.
 
 \hardsubproblem{How does Silver define \emph{out of sample}? Answer using notation from class i.e. $t,f, g, h^*, \delta, \epsilon, z_1, \ldots, z_t, \delta, \mathbb{D}, \mathcal{H}, \mathcal{A}, \mathcal{X}, \mathcal{Y}, X, y, n, p, x_{\cdot 1}, \ldots, x_{\cdot p}, x_{1 \cdot}, \ldots, x_{n \cdot}$, etc. WARNING: Silver defines \emph{out of sample} completely differently than the literature, than practitioners in industry and how we will define it in class in a month or so. We will explore what he is talking about in class in the future and we will term this concept differently, using the more widely accepted terminology. So please forget the phrase \emph{out of sample} for now as we will introduce it later in class as something else. There will be other such terms in his book and I will provide this disclaimer at these appropriate times.}\spc{7}
 
+Silver explains out of sample with an example of a good driver. A good driver has data that he's a good driver by having 20,000 trips trips in which two resulted in a car accident but still has a good 19,998 trips where he got home safe.The driver got drunk and assumes that since he was able to make majority of his trips home with a high probability then theirs a high probability that he would make it home drunk.The problem is that the driver has no data on being drunk so his sample size isnt 20,000 but 0 and. this is what Silver consider out of sample.
+
 \intermediatesubproblem{Look up \emph{bias} and \emph{variance} online or in a statistics textbook. Connect these concepts to Silver's terms \emph{accuracy} and \emph{precision}. This is another example of Silver using non-standard terminology.}\spc{9}
+
+Bias tries to oversimplifies things and miss the important parts leading to high errors. Variance tries to over over compensate and fail to generalize the data, it performs well on testing set but not on real data. Silver term precision seems to be connect to variance and accuracy to bias.  
+
 
 \end{enumerate}
 
@@ -204,21 +210,23 @@ as the best approximation of f which would be h*
 
 \easysubproblem{If $g = \mathcal{A}(\mathbb{D}, \mathcal{H})$, what should the domain and range of $g$ be?}\spc{3}
 
-
+The domain should be the inputs from data \mathbb{D} and the set of \matcal{H}. Its range should be the output of the approximation of the phenomenon $y$
 
 \easysubproblem{Is $g \in \mathcal{H}$? Why or why not?}\spc{3}
 
-$g \in \mathcal{H}$ because we defined an algorithm \mathcal{A}
+$g \in \mathcal{H}$ because we defined an algorithm \mathcal{A} which produces $g$ when given data $\mathbb{D}$ and $\matcal{H}$ 
 
 \easysubproblem{Given a never-before-seen value of $x_1$ which we denote $x^*$, what formula would we use to predict the corresponding value of the output? Denote this prediction $\hat{y}^*$.}\spc{1}
 
 \intermediatesubproblem{Is it reasonable to assume $f \in \mathcal{H}$? Why or why not?}\spc{2}
 
-Generally speaking no but there is a $h* \in \matcal{H}$ which is the closes possible model to f
+Generally speaking no but there is a $h* \in \matcal{H}$ which is the closes possible model to $f$
 
 \easysubproblem{In the general modeling setup, if $f \notin \mathcal{H}$, what are the three sources of error? Copy the equation from the class notes. Denote the names of each error and provide a sentence explanation of each. Denote also $e$ and $\mathcal{E}$ using underbraces / overbraces.}\spc{6}
 
 \easysubproblem{In the general modeling setup, for each of the three source of error, explain what you would do to reduce the source of error as best as you can.}\spc{8}
+
+The 
 
 \intermediatesubproblem{In the general modeling setup, make up an $f$, an $h^*$ and a $g$ and plot them on a graph of $y$ vs $x$ (assume $p=1$). Indicate the sources of error on this plot (see last question). Which source of error is missing from the picture? Why?}\spc{11}
 
