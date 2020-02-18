@@ -1,6 +1,6 @@
 ---
 title: "Lab 2"
-author: "Your Name Here"
+author: "Tyron Samaroo"
 output: pdf_document
 date: "11:59PM February 17, 2020"
 ---
@@ -11,7 +11,7 @@ date: "11:59PM February 17, 2020"
 * Calculate the average of 1000 realizations of Bernoullis with p = 0.9 in one line using `rbinom`.
 
 ```{r}
-mean(rbinom(100, size = 1, prob =  = 0.9))
+mean(rbinom(100, size = 1, prob =  0.9))
 ```
 
 * In class we considered a variable `x_3` which measured "criminality". We imagined L = 4 levels "none", "infraction", "misdimeanor" and "felony". Create a variable `x3` here with 100 random elements (equally probable). Create it as a nominal (i.e. unordered) factor.
@@ -41,7 +41,6 @@ X
 ```{r}
 rowSums(X)
 table(rowSums(X))
-
 ```
 
 * How should the column sum look (in English)? Verify that.
@@ -55,6 +54,7 @@ colSums(X)
 
 
 ```{r}
+
 n = 100
 X = matrix(data = NA, nrow = n, ncol = 6)
 X[ ,1] = rnorm(n, mean = 17, sd = sqrt(38))
@@ -64,7 +64,7 @@ X[ ,4] = rexp(n, rate = 9)
 X[ ,5] = rbinom(n, size = 20, prob = 0.12)
 X[ ,6] = sample(c(rep(1, n * 0.24), rep(0, n * 0.76)))
 #X[ ,6] = sample(c(1,0), size = n, replace= TRUE, prob = c(0.24, 0.76))
-rownames(X) = fake_first_names    
+  
 
 fake_first_names = c(
   "Sophia", "Emma", "Olivia", "Ava", "Mia", "Isabella", "Riley", 
@@ -84,12 +84,14 @@ fake_first_names = c(
   "Landon", "David", "Christian", "Andrew", "Brayden", "John", 
   "Lincoln"
 )
+rownames(X) = fake_first_names  
 X
 ```
 
 * Create a data frame of the same data as above except make the binary variable a factor "DOMESTIC" vs "FOREIGN" for 0 and 1 respectively. Print out the top few rows to check this worked correctly.
 
 ```{r}
+
 df = data.frame(X)
 df$X6 = factor(df$X6, levels = c(0,1), labels = c("DOMESTIC","FOREIGN"))
 df
@@ -98,6 +100,8 @@ df
 * Print out a table of the binary variable. Then print out the proportions of "DOMESTIC" vs "FOREIGN".
 
 ```{r}
+
+table(df$X6)
 table(df$X6) / n
 
 ```
@@ -111,9 +115,9 @@ summary(df)
 
 ```{r}
 n = 50
-X = matrix(sample(c(rep(0, n^2 *.5),
-                    rep(1, n^2 * .25),
-                    rep(2, n^2 * .25))),
+X = matrix(data = sample(c(rep(0, n^2 *.5),
+                           rep(1, n^2 * .25),
+                           rep(2, n^2 * .25))),
            nrow = n, 
            ncol = n)
 table(X)
@@ -125,94 +129,148 @@ table(X)
 ```{r}
 for (i in 1 : n) {
   for(j in 1 : n){
-    if(runif(1) < 0.3){
+    if(runif(1) < 0.3){ # runif gives anything between 0 - 1
       X[i, j] = NA
     }
   }
 }
 sum(is.na(X) / n^2)
 X
-#summary(X)
+
 ```
 
 * Sort the rows in matrix `R` by the largest row sum to lowest. Be careful about the NA's!
 
 ```{r}
+
 sums = rowSums(X,na.rm = TRUE)
 sums
 sort(sums)
 order(sums, decreasing = TRUE)
+X_sorted = order(sums, decreasing = TRUE)
 X_sorted
+
 
 ```
 
 * We will now learn the `apply` function. This is a handy function that saves writing for loops which should be eschewed in R. Use the apply function to compute a vector whose entries are the standard deviation of each row. Use the apply function to compute a vector whose entries are the standard deviation of each column. Be careful about the NA's! This should be one line.
 
 ```{r}
-#TO-DO
+std_apply_row = apply(X, 1, sd, na.rm = TRUE)
+std_apply_row
+std_apply_col = apply(X, 2, sd, na.rm = TRUE)
+std_apply_col
 ```
 
 * Use the `apply` function to compute a vector whose entries are the count of entries that are 1 or 2 in each column. This should be one line.
 
 ```{r}
-#TO-DO
+count_entires_not_zero = apply(X > 0, 2, sum, na.rm = TRUE)
+count_entires_not_zero
+count_entires_not_zero_again = apply(X == 2 | X == 1, 2, sum, na.rm = TRUE)
+count_entires_not_zero_again
 ```
 
 * Use the `split` function to create a list whose keys are the column number and values are the vector of the columns. Look at the last example in the documentation `?split`.
 
 ```{r}
-#TO-DO
+col_list = split(X,col(X))
+col_list
 ```
 
 * In one statement, use the `lapply` function to create a list whose keys are the column number and values are themselves a list with keys: "min" whose value is the minimum of the column, "max" whose value is the maximum of the column, "pct_missing" is the proportion of missingness in the column and "first_NA" whose value is the row number of the first time the NA appears.
 
 ```{r}
-#TO-DO
+special_list_col = lapply(col_list, 
+                          function(X){
+                            minimum = min(X,na.rm = TRUE)
+                            maximum = max(X,na.rm = TRUE)
+                            pct_missing = (sum(is.na(X)) / length(X)) * 100
+                            first_NA = min(which(is.na(X)))
+                            c(minimum, maximum, pct_missing, first_NA)  #Needed to return all info 
+                          })
+special_list_col
 ```
 
 * Create a vector `v` consisting of a sample of 1,000 iid normal realizations with mean -10 and variance 100.
 
 ```{r}
-#TO-DO
+v = rnorm(1000, mean = -10, sd = sqrt(100))
 ```
 
 
 * Create a function `my_reverse` which takes as required input a vector and returns the vector in reverse where the first entry is the last entry, etc. No function calls are allowed inside your function otherwise that would defeat the purpose of the exercise! (Yes, there is a base R function that does this called `rev`). Use `head` on `v` and `tail` on `my_reverse(v)` to verify it works.
 
 ```{r}
-#TO-DO
+my_reverse = function(x){
+  n = length(x)
+  for(i in 1 :ceiling(n / 2)){
+    temp = x[i]
+    x[i] = x[n - i + 1]
+    x[n - i + 1] = temp
+  }
+  x
+}
+
+dumb_rev = function(x){
+  n = length(x)
+  rev_array = array(NA,n)
+  for(i in 1:n){
+    rev_array[i] = x[n - i + 1]
+  }
+  rev_array
+}
+
+
+head(v)
+tail(my_reverse(v))
+
+
 ```
 
 
 * Create a function `flip_matrix` which takes as required input a matrix, an argument `dim_to_rev` that returns the matrix with the rows in reverse order or the columns in reverse order depending on the `dim_to_rev` argument. Let the default be the dimension of the matrix that is greater.
 
 ```{r}
-#TO-DO
+#If you want to reverse columns pass in 2.
+#If you want to reverse rows pass in 1. 
+flip_matrix = function(matrix,dim_to_rev){
+  apply(matrix,dim_to_rev, my_reverse)
+}
 ```
 
 * Find the average of `v` and the standard error of `v`.
 
 ```{r}
-#TO-DO
+avg = mean(v)
+std_error = sd(v) / sqrt(length(v))
 ```
 
 * Find the 5%ile of `v` and use the `qnorm` function to compute what it theoretically should be. Is the estimate about what is expected by theory?
 
 ```{r}
-#TO-DO
+quantile(v, probs = 0.05)
+qnorm(0.05,-10,sqrt(100))
 ```
 
 * What is the percentile of `v` that corresponds to the value 0? What should it be theoretically? Is the estimate about what is expected by theory?
 
 ```{r}
-#TO-DO
+quantile(v) 
+plot(v)
 ```
 
 * Create a list named `my_list` with keys "A", "B", ... where the entries are arrays of size 1, 2 x 2, 3 x 3 x 3, etc. Fill the array with the numbers 1, 2, 3, etc. Make 8 entries.
 
 
 ```{r}
-#TO-DO
+keys = c("A","B","C","D","E","F","G","H")
+my_list = list()
+#Iterate each key. Value be an array with nums
+for(i in 1:length(keys)){
+  my_list[[keys[i]]] = matrix(1:i,i,i)
+}
+my_list
 ```
 
 Run the following code:
@@ -228,7 +286,7 @@ Use `?object.size` to read about what these functions do. Then explain the outpu
 Now cleanup the namespace by deleting all stored objects and functions:
 
 ```{r}
-#TO-DO
+rm(list=ls())
 ```
 
 ## A little about strings
@@ -236,7 +294,13 @@ Now cleanup the namespace by deleting all stored objects and functions:
 * Use the `strsplit` function and `sample` to put the sentences in the string `lorem` below in random order. You will also need to manipulate the output of `strsplit` which is a list. You may need to learn basic concepts of regular expressions.
 
 ```{r}
-lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi posuere varius volutpat. Morbi faucibus ligula id massa ultricies viverra. Donec vehicula sagittis nisi non semper. Donec at tempor erat. Integer dapibus mi lectus, eu posuere arcu ultricies in. Cras suscipit id nibh lacinia elementum. Curabitur est augue, congue eget quam in, scelerisque semper magna. Aenean nulla ante, iaculis sed vehicula ac, finibus vel arcu. Mauris at sodales augue. "
+lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi posuere varius volutpat. Morbi faucibus ligula id massa ultricies viverra. Donec vehicula sagittis nisi non semper. Donec at tempor erat. Integer dapibus mi lectus, eu posuere arcu ultricies in. Cras suscipit id nibh lacinia elementum. Curabitur est augue, congue eget quam in, scelerisque semper magna. Aenean nulla ante, iaculis sed vehicula ac, finibus vel arcu. Mauris at sodales augue."
+
+strsplit(lorem,"[.]")
+output = unlist(strsplit(lorem,"[.]"))
+res = sample(output)
+output
+res
 ```
 
 
