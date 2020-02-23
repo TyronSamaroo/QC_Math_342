@@ -105,7 +105,6 @@ Now create a vector `y` that is length the number of remaining rows in the data 
 
 ```{r}
 y = as.numeric(iris$Species == "versicolor")
-w = perceptron_learning_algorithm(iris$Sepal.Length,y,w = 0)
 
 
 
@@ -182,23 +181,35 @@ You will code the "perceptron learning algorithm". Take a look at the comments a
 #' TO-DO: Explain what this function does in a few sentences
 #' This function takes input data X and y labeled data y and some weight w that will 
 #'
-#' @param Xinput      TO-DO: 
-#' @param y_binary    TO-DO: label data that we are trying to predict 
-#' @param MAX_ITER    TO-DO: Max steps the algorithm will run 
-#' @param w           TO-DO: Weights
+#' @param Xinput      Matrix with features and each observations
+#' @param y_binary    Label data that we are trying to predict 
+#' @param MAX_ITER    Max steps the algorithm will run 
+#' @param w           Weights
 #'
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 #' @export            [In a package, this documentation parameter signifies this function becomes a public method. Leave this blank.]
 #'
 #' @author            [Tyron Samaroo]
 perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL){
-  num_errors = array(NA, length(Xinput))
-  for(i in 1 : MAX_ITER){
-    for(i in 1: length(Xinput)){
-      x_i = Xinput[i]
+  
+  n = nrow(Xinput)
+  p = ncol(Xinput) # features 
+  #num_errors = array(NA, length(Xinput))
+  Xinput = cbind(rep(1,n), Xinput)
+  
+  #init w vec 
+  if(is.null(w)){
+    w = rep(0,p)
+  }
+  
+  for(iter in 1 : MAX_ITER){
+    for(i in 1: n){
+      x_i = Xinput[i,]
       yhat_i = ifelse(sum(x_i * w) > 0, 1, 0)
       y_i = y_binary[i]
-      w = w + (y_i - yhat_i) * x_i
+      for(j in 1:p){
+        w[j] = w[j] + (y_i - yhat_i) * x_i[j]
+      }
     }
   }
   w
@@ -279,7 +290,11 @@ y_binary = as.numeric(Xy_simple$response == 1)
 Use the `e1071` package to fit an SVM model to `y_binary` using the features in `X_simple_feature_matrix`. Do not specify the $\lambda$ (i.e. do not specify the `cost` argument). Call the model object `svm_model`. Otherwise the remaining code won't work.
 
 ```{r}
-svm_model = #TO-DO
+pacman::p_load(e1071)
+svm_model = svm(X_simple_feature_matrix, 
+                Xy_simple$response,
+                kernel = 'linear',
+                scale= NULL)
 ```
 
 and then use the following code to visualize the line in purple:
@@ -297,7 +312,7 @@ simple_viz_obj + simple_perceptron_line + simple_svm_line
 ```
 
 Is this SVM line a better fit than the perceptron?
-
+Yes 
 TO-DO
 
 3. Now write pseuocode for your own implementation of the linear support vector machine algorithm using the Vapnik objective function we discussed.
@@ -318,6 +333,10 @@ Note there are differences between this spec and the perceptron learning algorit
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 linear_svm_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 5000, lambda = 0.1){
   #TO-DO: write pseudo code in comments
+  # SHE = max(0, 0.5 - (y_i - 0.5) * (w %*% x_i - b)  / n
+  # min( 1/n * SHE + lambda length(w) ^2)
+  #
+  #
 }
 ```
 
