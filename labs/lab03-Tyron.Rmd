@@ -7,7 +7,7 @@ date: "11:59PM Saturday, February 22, 2020"
 
 ## Review from Lab 2
 
-You have set of names divided by gender (M / F) and generation (Boomer / GenX / Millenial):
+You have a set of names divided by gender (M / F) and generation (Boomer / GenX / Millenial):
 
 * M / Boomer      "Theodore, Bernard, Gene, Herbert, Ray, Tom, Lee, Alfred, Leroy, Eddie"
 * M / GenX        "Marc, Jamie, Greg, Darryl, Tim, Dean, Jon, Chris, Troy, Jeff"
@@ -19,15 +19,13 @@ You have set of names divided by gender (M / F) and generation (Boomer / GenX / 
 Create a list-within-a-list that will intelligently store this data.
 
 ```{r}
-set = list("M" = list(), "F" = list());
-
-set$F = list("Boomer" = strsplit("Gloria, Joan, Dorothy, Shirley, Betty, Dianne, Kay, Marjorie, Lorraine, Mildred", split = (",")[[1]]),
-             "GenX" = strsplit("Tracy, Dawn, Tina, Tammy, Melinda, Tamara, Tracey, Colleen, Sherri, Heidi", split = (",")[[1]]),
-             "Millennial" = strsplit("Samantha, Alexis, Brittany, Lauren, Taylor, Bethany, Latoya, Candice, Brittney, Cheyenne",split = (",")[[1]]))
-
-set$M = list("Boomer" = strsplit("Theodore, Bernard, Gene, Herbert, Ray, Tom, Lee, Alfred, Leroy, Eddie", split = (",")[[1]]),
-             "GenX" = strsplit("Marc, Jamie, Greg, Darryl, Tim, Dean, Jon, Chris, Troy, Jeff", split = (",")[[1]]),
-             "Millennial" =strsplit("Zachary, Dylan, Christian, Wesley, Seth, Austin, Gabriel, Evan, Casey, Luis", split = (",")[[1]]))
+set <- list("M" = list(), "F" = list())
+set$M$Boomer = c("Theodore", "Bernard", "Gene", "Herbert", "Ray", "Tom", "Lee", "Alfred", "Leroy", "Eddie")
+set$M$GenX = c("Marc", "Jamie", "Greg", "Darryl", "Tim", "Dean", "Jon", "Chris", "Troy", "Jeff")
+set$M$Millennial = strsplit("Zachary, Dylan, Christian, Wesley, Seth, Austin, Gabriel, Evan, Casey, Luis", split = ", ")[[1]]
+set$F$Boomer = strsplit("Gloria, Joan, Dorothy, Shirley, Betty, Dianne, Kay, Marjorie, Lorraine, Mildred", split = ", ")[[1]]
+set$F$GenX = strsplit("Tracy, Dawn, Tina, Tammy, Melinda, Tamara, Tracey, Colleen, Sherri, Heidi", split = ", ")[[1]]
+set$F$Millennial = strsplit("Samantha, Alexis, Brittany, Lauren, Taylor, Bethany, Latoya, Candice, Brittney, Cheyenne", split = ", ")[[1]]
 
 set
 ```
@@ -37,16 +35,16 @@ Imagine you are running an experiment with many manipulations. You have 14 level
 
 ```{r}
 n = 14 * 3 * 2 * 3 * 10
-X = data.frame(treatment = rep(NA, n),
-               variation = rep(NA, n),
+X = data.frame(treatment = rep(NA,n), 
+               variation = rep(NA,n),
                gender = rep(NA,n),
                generation = rep(NA,n),
                name = rep(NA,n),
-               y = rep(NA,n))
+               y = rep(NA, n))
 X$treatment = rep(letters[1:14], each = n / 14)
-X$variation = rep(rep(LETTERS[1:3], each = n / 14 / 3), times = 14)
-X$gender = rep(rep(c("M","F"), each = n / 14 / 3 / 2), times = 14 * 3)
-X$generation = rep(rep(c("Boomer", "GenX", "Millenial"), each = n / 14 / 3 / 2 / 3), times = 14 * 3 * 2)
+X$variation = rep(rep(LETTERS[1:3], each = n / 14 / 3) , times = 14)
+X$gender = rep(rep(c("M", "F"), each = n / 14 / 3 / 2), times = 14*3)
+X$generation = rep(rep(c("Boomer", "GenX", "Millenial"), each = n / 14/ 3 /2 / 3), times = 14 * 3 * 2)
 X$name = rep(unlist(set), times = 14 * 3)
 X
 ```
@@ -57,7 +55,6 @@ Install the package `pacman` using regular base R.
 
 ```{r}
 install.packages("pacman")
-
 ```
 
 
@@ -70,8 +67,7 @@ pacman::p_load(testthat)
 * Create vector `v` consisting of all numbers from -100 to 100 and test using the second line of code:
 
 ```{r}
-#TO-DO
-v = seq(-100, 100)
+v= seq(-100, 100)
 expect_equal(v, -100 : 100)
 ```
 
@@ -80,15 +76,8 @@ If there are any errors, the `expect_equal` function will tell you about them. I
 Test the `my_reverse` function from lab2 using the following code:
 
 ```{r}
-my_reverse = function(v){
-  n = length(v)
-  rev_v = array(NA,n)
-  for( i in 1: n){
-    rev_v[i] = v[n - i + 1]
-  }
-}
 expect_equal(my_reverse(v), rev(v))
-#expect_equal(my_reverse(c("A", "B", "C")), #TODO)
+expect_equal(my_reverse(c("A", "B", "C")), c("C", "B", "A"))
 ```
 
 ## Basic Binary Classification Modeling
@@ -96,7 +85,7 @@ expect_equal(my_reverse(v), rev(v))
 * Load the famous `iris` data frame into the namespace. Provide a summary of the columns and write a few descriptive sentences about the distributions using the code below and in English.
 
 ```{r}
-data('iris')
+data("iris")
 iris
 ```
 
@@ -106,63 +95,80 @@ The outcome metric is `Species`. This is what we will be trying to predict. Howe
 
 ```{r}
 
-iris = iris[iris$Species != "virginica",]
+iris = iris[iris$Species != "virginica", ]
 table(iris$Species)
-iris
 
+iris
 ```
 
 Now create a vector `y` that is length the number of remaining rows in the data frame whose entries are 0 if "setosa" and 1 if "versicolor".
 
 ```{r}
 y = as.numeric(iris$Species == "versicolor")
+w = perceptron_learning_algorithm(iris$Sepal.Length,y,w = 0)
+
+
+
+```
+
+* Write a function `mode` returning the sample mode.
+
+```{r}
+mode = function(x){
+  ifelse(length(x[x == 0]) > length(x[x == 1]), 0, 1)
+}
+y
+
+length(y[y == 0])
+length(y[y == 1])
+mode(y) # So setosa 
 ```
 
 * Fit a threshold model to `y` using the feature `Sepal.Length`. Write your own code to do this. What is the estimated value of the threshold parameter? What is the total number of errors this model makes?
 
 ```{r}
 n = nrow(iris)
-n
-num_errors = array(NA,n)
-num_errors
-for(i in 1: n){
+num_errors = array(NA, n)
+
+for (i in 1 : n) {
   y_hat = as.numeric(iris$Sepal.Length > iris$Sepal.Length[i])
   num_errors[i] = sum(y_hat != y)
-  
 }
-which.min(num_errors)
-min(num_errors)
-num_errors[6]
-threshhold = iris$Sepal.Length[which.min(num_errors)]
+threshold = iris$Sepal.Length[which.min(num_errors)] 
 
-g = function(x){
-  as.numeric( x > threshhold)
+g = function(x) {
+  as.numeric(x > threshold)
 }
 
-sum(g(iris$Sepal.Length)) != y
+sum(g(iris$Sepal.Length) != y)
 table(y)
+
 ```
-Does this make sense given the following summaries:
+
+Does Robin's threshold model's performance make sense given the following summaries:
 
 ```{r}
+threshold
 summary(iris[iris$Species == "setosa", "Sepal.Length"])
-summary(iris[iris$Species == "virginica", "Sepal.Length"])
+summary(iris[iris$Species == "versicolor", "Sepal.Length"])
 ```
 
 Write your answer here in English.
 
-TO-DO
+Robin's threshhold model's performance makes sense because the median of "Setosa" is belong his predicted 5.4 length threshold and the average for "Versicolor" is above his 5.4 length threshold.
 
 Create the function `g` explicitly that can predict `y` from `x` being a new `Sepal.Length`.
 
 ```{r}
-#TO-DO
+g = function(x) {
+  as.numeric(x > threshold)
+}
 ```
 
 * What is the total number of errors this model makes in the dataset $\mathbb{D}$?
 
 ```{r}
-#TO-DO
+sum(g(iris$Sepal.Length) != y)
 ```
 
 
@@ -172,21 +178,33 @@ You will code the "perceptron learning algorithm". Take a look at the comments a
 
 ```{r}
 #' TO-DO: Provide a name for this function 
-#'
+#' percentron_learning_algorithm
 #' TO-DO: Explain what this function does in a few sentences
+#' This function takes input data X and y labeled data y and some weight w that will 
 #'
-#' @param Xinput      TO-DO: Explain this
-#' @param y_binary    TO-DO: Explain this
-#' @param MAX_ITER    TO-DO: Explain this
-#' @param w           TO-DO: Explain this
+#' @param Xinput      TO-DO: 
+#' @param y_binary    TO-DO: label data that we are trying to predict 
+#' @param MAX_ITER    TO-DO: Max steps the algorithm will run 
+#' @param w           TO-DO: Weights
 #'
 #' @return            The computed final parameter (weight) as a vector of length p + 1
 #' @export            [In a package, this documentation parameter signifies this function becomes a public method. Leave this blank.]
 #'
-#' @author            [your name]
+#' @author            [Tyron Samaroo]
 perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL){
-  #TO-DO
+  num_errors = array(NA, length(Xinput))
+  for(i in 1 : MAX_ITER){
+    for(i in 1: length(Xinput)){
+      x_i = Xinput[i]
+      yhat_i = ifelse(sum(x_i * w) > 0, 1, 0)
+      y_i = y_binary[i]
+      w = w + (y_i - yhat_i) * x_i
+    }
+  }
+  w
 }
+
+
 ```
 
 To understand what the algorithm is doing - linear "discrimination" between two response categories, we can draw a picture. First let's make up some very simple training data $\mathbb{D}$.
