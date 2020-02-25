@@ -193,18 +193,18 @@ You will code the "perceptron learning algorithm". Take a look at the comments a
 perceptron_learning_algorithm = function(Xinput, y_binary, MAX_ITER = 1000, w = NULL){
   
   n = nrow(Xinput)
+  Xinput = cbind(rep(1,n), Xinput)
   p = ncol(Xinput) # features 
   #num_errors = array(NA, length(Xinput))
-  Xinput = cbind(rep(1,n), Xinput)
+  
   
   #init w vec 
   if(is.null(w)){
     w = rep(0,p)
   }
-  
   for(iter in 1 : MAX_ITER){
     for(i in 1: n){
-      x_i = Xinput[i,]
+      x_i = Xinput[i, ]
       yhat_i = ifelse(sum(x_i * w) > 0, 1, 0)
       y_i = y_binary[i]
       for(j in 1:p){
@@ -380,7 +380,9 @@ Is this the same as what the `e1071` implementation returned? Why or why not?
 #' @param Xtest       The test data that the algorithm will predict on as a n* x p matrix.
 #' @return            The predictions as a n* length vector.
 nn_algorithm_predict = function(Xinput, y_binary, Xtest){
-  #TO-DO
+  n = nrow(Xinput)
+  
+  
 }
 ```
 
