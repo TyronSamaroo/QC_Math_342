@@ -162,13 +162,14 @@ summary(mod1)$r.squared
 Verify $\hat{y}$ and $e$ are orthogonal.
 
 ```{r}
-#TO-DO
+sum(y_hat * e1)
+
 ```
 
 Verify $\hat{y} - \bar{y}$ and $e$ are orthogonal.
 
 ```{r}
-#TO-DO
+sum(y_hat - mean(y) * e1)
 ```
 
 Verify the sum of squares identity which we learned was due to the Pythagorean Theorem (applies since the projection is specifically orthogonal). You need to compute all three quantities first: SST, SSR and SSE.
