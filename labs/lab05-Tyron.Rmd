@@ -1,6 +1,6 @@
 ---
 title: "Lab 5"
-author: "Your Name Here"
+author: "Tyron Samaroo"
 output: pdf_document
 date: "11:59PM March 7, 2020"
 ---
@@ -9,22 +9,24 @@ Load the Boston housing data frame and create the vector $y$ (the median value) 
 
 ```{r}
 y = MASS::Boston$medv
-X = MASS::Boston[, 1:13]
+X = MASS::Boston[ , 1:13] 
+
 ```
 
-Run the OLS linear model to get $b$, the vector of coefficients. Do not use `lm`.
+Run the OLS linear model to get $b$, the vector of coefficients. Do not use `lm`. This is $(XX^T)^{-1}X^Ty$
 
 ```{r}
-X = cbind(1, as.matrix(X))
+X = cbind(1,as.matrix(X))
+b = solve(t(X) %*% X ) %*% t(X) %*% y 
+
 ```
 
-Find the hat matrix for this regression `H`. Verify its dimension is correct and verify its rank is correct.
+Find the hat matrix for this regression `H`. Verify its dimension is correct and verify its rank is correct. $H=X(X^TX)^{-1}X^T$
 
 ```{r}
-
-pacman::p_load(Matrix)
 H = X %*% solve(t(X) %*% X) %*% t(X)
 dim(H)
+pacman::p_load(Matrix)
 rankMatrix(H)
 ```
 
@@ -34,38 +36,41 @@ Verify this is a projection matrix by verifying the two sufficient conditions. U
 pacman::p_load(testthat)
 expect_equal(H, t(H))
 expect_equal(H, H %*% H)
+
 ```
 
 Find the matrix that projects onto the space of residuals `Hcomp` and find its rank. Is this rank expected?
 
 ```{r}
-H_comp = diag(nrow(X)) - H
-rankMatrix(H_comp, tol = 1e-2)
+I = diag(nrow(H))
+Hcomp = I - H
+rankMatrix(H)
+rankMatrix(Hcomp, tol=1e-2)
 ```
 
 Verify this is a projection matrix by verifying the two sufficient conditions. Use the `testthat` library.
 
 ```{r}
-expect_equal(H_comp,t(H_comp))
-expect_equal(H_comp, H_comp %*% H_comp)
+expect_equal(Hcomp, t(Hcomp))
+expect_equal(Hcomp, Hcomp %*% Hcomp)
 ```
 
 Use `diag` to find the trace of both `H` and `Hcomp`.
 
 ```{r}
 sum(diag(H))
-sum(diag(H_comp))
+sum(diag(Hcomp))
 ```
 
 Do you have a conjecture about the trace of an orthogonal projection matrix?
  
-Trace is equal to rank
+trace is equal to the rank
 
-Find the eigendecomposition of both `H` and `Hcomp` as `eigenvals_H`, `eigenvals_H`, `eigenvals_Hcomp`, `eigenvecs_Hcomp`. Verify these results are the correct dimensions.
+Find the eigendecomposition of both `H` and `Hcomp` as `eigenvals_H`, `eigenvecs_H`, `eigenvals_Hcomp`, `eigenvecs_Hcomp`. Verify these results are the correct dimensions.
 
 ```{r}
 eigen_H = eigen(H)
-eigen_Hcomp = eigen(H_comp)
+eigen_Hcomp = eigen(Hcomp)
 
 eigenvals_H = eigen_H$values
 eigenvecs_H = eigen_H$vectors
@@ -74,37 +79,38 @@ eigenvecs_Hcomp = eigen_Hcomp$vectors
 
 length(eigenvals_H)
 dim(eigenvecs_H)
-
 length(eigenvals_Hcomp)
-
-
+dim(eigenvecs_Hcomp)
 ```
 
-The eigendecomposition suffers from numerical error which is making them become imaginary. We can coerce imaginary numbers back to real by using the `abs` function. There is also lots of numerical error. Use the `abs` function to coerce to real and the `round` function to round all four objects to the nearest 10 digits.
+The eigendecomposition suffers from numerical error which is making them become imaginary. We can coerce imaginary numbers back to real by using the `Re` function. There is also lots of numerical error. Use the `Re` function to coerce to real and the `round` function to round all four objects to the nearest 10 digits.
 
-```{r}
-eigenvals_H = round(Re(as.numeric(eigenvals_H)),10)
-eigenvecs_H = round(Re(as.numeric(eigenvecs_H)),10)
-
-eigenvals_Hcomp = round(Re(as.numeric(eigenvals_Hcomp)),10)
-eigenvecs_Hcomp = round(Re(as.numeric(eigenvecs_Hcomp)),10)
-
+```{r, warning = FALSE, message = FALSE}
+eigenvals_H = round(as.numeric(eigenvals_H), 10)
+eigenvecs_H = round(Re(eigenvecs_H), 10)
+eigenvals_Hcomp = round(as.numeric(eigenvals_Hcomp), 10)
+eigenvecs_Hcomp = round(Re(eigenvecs_Hcomp), 10)
 ```
 
 Print out the eigenvalues of both `H` and `Hcomp`. Is this expected?
 
 ```{r}
 eigenvals_H
+eigenvecs_H
 eigenvals_Hcomp
 ```
 
-Find the length of all eigenvectors of `H` in one line. Is this expected? What is the convention for eigenvectors in R's `eigen` function?
+Find the length of all eigenvectors of `H` in one line. 
 
-```{r message=FALSE, warning=FALSE}
-round(apply(eigenvecs_H, FUN = function(v){ sqrt(sum(v^2))}),10)
-
-
+```{r}
+apply(eigenvecs_H, MARGIN =2, FUN = function(v){
+  sqrt(sum(v^2))
+})
 ```
+
+Is this expected? What is the convention for eigenvectors in R's `eigen` function?
+
+Yes. The convention is length 1.
 
 The first p+1 eigenvectors are the columns of $X$ but they are in arbitrary order. Find the column that represents the one-vector. 
 
@@ -114,7 +120,7 @@ head(eigenvecs_H[, 3])
 
 Why is it not exactly 506 1's?
 
-Numeric Error
+Numeric error
 
 Use the first p+1 eigenvectors as a model matrix and run the OLS model of medv on that model matrix. 
 
@@ -122,128 +128,236 @@ Use the first p+1 eigenvectors as a model matrix and run the OLS model of medv o
 ```{r}
 mod1 = lm(y ~ X)
 mod2 = lm(y ~ eigenvecs_H[, 1:14])
-
+summary(mod1)
+summary(mod2)
 ```
 
 Is b about the same above (in arbitrary order)?
 
-No, the eigen vectors are sacled to be unit length
+NO, the eigen vectors are scaled to be unit length
 
 Calculate $\hat{y}$ using the hat matrix.
 
 ```{r}
-y_hat = H %*% y
+y_hat= H %*% y
+y_hat
 ```
 
 Calculate $e$ two ways: (1) the difference of $y$ and $\hat{y}$ and (2) the projection onto the space of the residuals. Verify the two means of calculating the residuals provide the same results via `expect_equal`.
 
 ```{r}
 e1 = y - y_hat
-e2 = H_comp %*% y
-expect_equal(e1,e2)
+e2 = Hcomp %*% y
+expect_equal(e1, e2)
 ```
 
-Calculate $R^2$ using the angle relationship between the responses and their predictions.
+Calculate $R^2$ using the angle relationship between the responses and their predictions. $
+
 
 ```{r}
+
 length_of_vec = function(v){sqrt(sum(v^2))}
-y_avg_adj = y - mean(y)
+y_avg_adj = y - mean(y) 
 y_yhat_adj = y_hat - mean(y)
-sum(y_avg_adj * y_yhat_adj) / (length_of_vec(y_avg_adj)*length_of_vec(y_yhat_adj)) ** 2
+(sum(y_avg_adj * 
+     y_yhat_adj
+     ) 
+    / 
+    (length_of_vec(y_avg_adj) * 
+      length_of_vec(y_yhat_adj))
+    ) ** 2 
+
+(
+  sum(
+    y_avg_adj * y_yhat_adj
+  )
+  /
+  ( 
+    length_of_vec(y_avg_adj) * length_of_vec(y_yhat_adj))) ^ 2
 
 ```
 
-Find the cosine-squared of $y - \bar{y}$ and $\hat{y} - \bar{y}$ and verify it is the same as $R^2$. This empirically demonstrates what I missed in class: that the angle between $y$ and $\hat{y}$ is equal to the angle between $y - \bar{y}$ and $\hat{y} - \bar{y}$.
+Find the cosine-squared of $y - \bar{y}$ and $\hat{y} - \bar{y}$ and verify it is the same as $R^2$.
 
 ```{r}
 summary(mod1)$r.squared
+
+theta_in_rad = cos(
+              ((y_avg_adj) %*% y_yhat_adj)
+              /
+              (length_of_vec(y_avg_adj) * length_of_vec(y_yhat_adj))
+            )
+(theta_in_rad * 180 / pi)
+theta_in_rad ^ 2
+
 ```
 
 Verify $\hat{y}$ and $e$ are orthogonal.
 
 ```{r}
-sum(y_hat * e1)
+sum(y_hat*e1)
 
 ```
 
 Verify $\hat{y} - \bar{y}$ and $e$ are orthogonal.
 
 ```{r}
-sum(y_hat - mean(y) * e1)
+sum((y_hat -mean(y)) *e1)
 ```
 
 Verify the sum of squares identity which we learned was due to the Pythagorean Theorem (applies since the projection is specifically orthogonal). You need to compute all three quantities first: SST, SSR and SSE.
 
 ```{r}
-#TO-DO
+SSE = sum((y - y_hat)^2)
+SST = sum((y - mean(y))^2)
+SSR = sum((y_hat - mean(y))^2)
+1 - (SSE / SST)
+expect_equal(SSR/SST,1 - (SSE / SST), (SST-SSE) / SST)
+a = sqrt(SSR)
+b = sqrt(SSE)
+c = sqrt(SST)
+expect_equal(c^2,a^2 + b^2)
+
 ```
 
 Create a matrix that is $(p + 1) \times (p + 1)$ full of NA's. Label the columns the same columns as X. Do not label the rows. For the first row, find the OLS estimate of the $y$ regressed on the first column only and put that in the first entry. For the second row, find the OLS estimates of the $y$ regressed on the first and second columns of $X$ only and put them in the first and second entries. For the third row, find the OLS estimates of the $y$ regressed on the first, second and third columns of $X$ only and put them in the first, second and third entries, etc. For the last row, fill it with the full OLS estimates.
 
 ```{r}
-#TO-DO
+new_matrix= matrix(NA,ncol(X),ncol(X))
+dim(new_matrix)
+colnames(new_matrix) = colnames(X)
+
+# for(i in 1:ncol(new_matrix)){
+#   matrix_col_i = X[ , 1:i, drop = FALSE] # entire column 
+#   new_matrix[i, 1:i] = solve(t(matrix_col_i) %*% matrix_col_i ) %*% t(matrix_col_i) %*% y  #regressing ols of y y onto first col
+# }
+
+for(i in 1:ncol(new_matrix)){
+  matrix_col_i = X[ , 1:i, drop = FALSE]
+  for(j in 1:i){
+    b = solve(t(matrix_col_i) %*% matrix_col_i ) %*% t(matrix_col_i) %*% y 
+    new_matrix[i, 1:i] = b
+  }
+}
+#new_matrix
+round(new_matrix,2) # easier to view
+
 ```
 
-Examine this matrix. Why are the estimates changing from row to row as you add in more predictors?
+Examine this matrix. Why are the estimates changing from row to row as you add in more predictors
 
-#TO-DO
+We are examining one feature at a time and seeing how far its away from the mean.
 
 Clear the workspace and load the diamonds dataset in the package `ggplot2`.
 
 ```{r}
-#TO-DO
+rm(list=ls())
+pacman::p_load(ggplot2)
+data("diamonds")
+
+
 ```
 
 Extract $y$, the price variable and `col`, the nominal variable "color" as vectors.
 
 ```{r}
-#TO-DO
+y = diamonds$price
+col = diamonds$color
 ```
 
 Convert the `col` vector to $X$ which contains an intercept and an appropriate number of dummies. Let the color G be the refernce category as it is the modal color. Name the columns of $X$ appropriately. The first should be "(Intercept)". Delete `col`.
 
 ```{r}
-#TO-DO
+#Problem col is ordered factor cant just use relevel 
+# col = droplevels(col,"G")
+# X = cbind(1,col)
+# 
+# X
+X = matrix(1,nrow(diamonds)) #
+
+
+for(lev in levels(col)){
+  if(lev != "G"){
+    X = cbind(X, col == lev)
+  }
+}
+colnames(X) = c("Intercept","D","E","F","H","I","J")
+
+
 ```
 
 Repeat the iterative exercise above we did for Boston here.
 
 ```{r}
-#TO-DO
+new_matrix= matrix(NA,ncol(X),ncol(X))
+colnames(new_matrix) = colnames(X)
+for(i in 1:ncol(new_matrix)){
+  matrix_col_i = X[ , 1:i, drop = FALSE]
+  for(j in 1:i){
+    b = solve(t(matrix_col_i) %*% matrix_col_i ) %*% t(matrix_col_i) %*% y 
+    new_matrix[i, 1:i] = b
+  }
+}
+
+price_model = lm(price ~ color, diamonds)
+round(new_matrix,2)
+summary(price_model)
+
 ```
 
 Why didn't the estimates change as we added more and more features?
 
-#TO-DO
+The estimates did change we we added more featues. 
 
 Model `price` with both `color` and `clarity` with and without an intercept and report the coefficients.
 
 ```{r}
-#TO-DO
+
+with_inter_diamond_price_model = lm(price ~ color + clarity, diamonds)
+
+without_inter_diamond_price_model = lm(price ~ 0 +color + clarity, diamonds)
+summary(diamond_price_model)
+summary(without_inter_diamond_price_model)
 ```
 
 Which coefficients did not change between the models and why?
 
-#TO-DO
-
+The clarity since they are numeric values.
 
 
 Create a 2x2 matrix with the first column 1's and the next column iid normals. Find the absolute value of the angle (in degrees, not radians) between the two columns.
 
 ```{r}
-#TO-DO
+matrix_two = matrix(NA,2,2)
+matrix_two[,1] = 1
+matrix_two[,2] = rnorm(1)
+theta_in_rad = acos(matrix_two[,1]  %*% matrix_two[,2]  / sqrt(sum(matrix_two[,1] ^2) * sum(matrix_two[,2] ^2)))
+theta_in_rad * 180 / pi #Getting 0 or 180
 ```
 
 Repeat this exercise $Nsim = 1e5$ times and report the average absolute angle.
 
 ```{r}
-#TO-DO
+for(i in 1:1e5){
+  theta_sum = theta_sum + acos(matrix_two[,1]  %*% matrix_two[,2]  / sqrt(sum(matrix_two[,1] ^2) * sum(matrix_two[,2] ^2)))
+}
+(theta_sum/1e5)* 180 / pi 
+
 ```
 
 Create a 2xn matrix with the first column 1's and the next column iid normals. Find the absolute value of the angle (in degrees, not radians) between the two columns. For $n \in {10, 50, 100, 200, 500, 1000}$, report the average absolute angle over $Nsim = 1e5$ simulations.
 
 ```{r}
-#TO-DO
+matrix_three = matrix(NA,2,10)
+matrix_three[,1] = 1
+matrix_three[,1:10] = rnorm(10)
+theta_in_rad = acos(matrix_three[,1]  %*% matrix_three[,2]  / sqrt(sum(matrix_three[,1] ^2) * sum(matrix_three[,2] ^2)))
+theta_in_rad * 180 / pi
+
+for(i in 1:1e5){
+  theta_sum = theta_sum + acos(matrix_three[,1]  %*% matrix_three[,2]  / sqrt(sum(matrix_three[,1] ^2) * sum(matrix_three[,2] ^2)))
+}
+(theta_sum/1e5)* 180 / pi 
 ```
 
 What is this absolute angle converging to? Why does this make sense?
@@ -253,18 +367,66 @@ What is this absolute angle converging to? Why does this make sense?
 Create a vector $y$ by simulating $n = 100$ standard iid normals. Create a matrix of size 100 x 2 and populate the first column by all ones (for the intercept) and the second column by 100 standard iid normals. Find the $R^2$ of an OLS regression of `y ~ X`. Use matrix algebra.
 
 ```{r}
-#TO-DO
+y = rnorm(100)
+X = matrix(NA,100,2)
+X[,1] = 1
+X[,2] = rnorm(100)
+
+b = solve(t(X) %*% X ) %*% t(X) %*% y 
+y_hat = X %*% b
+summary(some)
+SSE = sum((y - y_hat)^2)
+SST = sum((y - mean(y))^2)
+SSR = sum((y_hat - mean(y))^2)
+1 - (SSE / SST)
+
+model = lm(y ~ X)
+summary(model)
+
+
+simple_df = data.frame(x = X[,2], y = y)
+simple_viz_obj = ggplot(simple_df, aes(x, y)) + 
+  geom_point(size = 2)
+simple_viz_obj
+b_0 = model$coefficients[1]
+b_1 = model$coefficients[3]
+simple_ls_regression_line = geom_abline(intercept = b_0, slope = b_1, color = "red")
+simple_viz_obj + simple_ls_regression_line
 ```
 
 Write a for loop to each time bind a new column of 100 standard iid normals to the matrix $X$ and find the $R^2$ each time until the number of columns is 100. Create a vector to save all $R^2$'s. What happened??
 
 ```{r}
-#TO-DO
+X = matrix(1,100,1)
+for(i in 2:100){
+  X = cbind(X,rnorm(100))
+}
+b = solve(t(X) %*% X ) %*% t(X) %*% y 
+y_hat = X %*% b
+
+SSE = sum((y - y_hat)^2)
+SST = sum((y - mean(y))^2)
+SSR = sum((y_hat - mean(y))^2)
+1 - (SSE / SST) # It becomes just 100%
+
+dim(X)
+
 ```
 
 Add one final column to $X$ to bring the number of columns to 101. Then try to compute $R^2$. What happens?
 
 ```{r}
-#TO-DO
+X = matrix(1,100,1)
+for(i in 1:100){
+  X = cbind(X,rnorm(100))
+}
+dim(X)
+b = solve(t(X) %*% X ) %*% t(X) %*% y  #Get an error  
+y_hat = X %*% b
+
+SSE = sum((y - y_hat)^2)
+SST = sum((y - mean(y))^2)
+SSR = sum((y_hat - mean(y))^2)
+1 - (SSE / SST)
 ```
 
