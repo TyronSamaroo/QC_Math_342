@@ -96,7 +96,6 @@ Print out the eigenvalues of both `H` and `Hcomp`. Is this expected?
 
 ```{r}
 eigenvals_H
-eigenvecs_H
 eigenvals_Hcomp
 ```
 
@@ -140,7 +139,7 @@ Calculate $\hat{y}$ using the hat matrix.
 
 ```{r}
 y_hat= H %*% y
-y_hat
+
 ```
 
 Calculate $e$ two ways: (1) the difference of $y$ and $\hat{y}$ and (2) the projection onto the space of the residuals. Verify the two means of calculating the residuals provide the same results via `expect_equal`.
@@ -316,7 +315,7 @@ Model `price` with both `color` and `clarity` with and without an intercept and 
 with_inter_diamond_price_model = lm(price ~ color + clarity, diamonds)
 
 without_inter_diamond_price_model = lm(price ~ 0 +color + clarity, diamonds)
-summary(diamond_price_model)
+summary(with_inter_diamond_price_model)
 summary(without_inter_diamond_price_model)
 ```
 
@@ -338,6 +337,7 @@ theta_in_rad * 180 / pi #Getting 0 or 180
 Repeat this exercise $Nsim = 1e5$ times and report the average absolute angle.
 
 ```{r}
+theta_sum = 0
 for(i in 1:1e5){
   theta_sum = theta_sum + acos(matrix_two[,1]  %*% matrix_two[,2]  / sqrt(sum(matrix_two[,1] ^2) * sum(matrix_two[,2] ^2)))
 }
@@ -374,7 +374,7 @@ X[,2] = rnorm(100)
 
 b = solve(t(X) %*% X ) %*% t(X) %*% y 
 y_hat = X %*% b
-summary(some)
+summary(y_hat)
 SSE = sum((y - y_hat)^2)
 SST = sum((y - mean(y))^2)
 SSR = sum((y_hat - mean(y))^2)
@@ -415,18 +415,21 @@ dim(X)
 
 Add one final column to $X$ to bring the number of columns to 101. Then try to compute $R^2$. What happens?
 
-```{r}
-X = matrix(1,100,1)
+```{r error=TRUE ,message=FALSE, warning = FALSE}
+y = rnorm(101)
+X = matrix(1,101,1)
 for(i in 1:100){
   X = cbind(X,rnorm(100))
 }
-dim(X)
-b = solve(t(X) %*% X ) %*% t(X) %*% y  #Get an error  
+b = solve(t(X) %*% X ) %*% t(X) %*% y 
 y_hat = X %*% b
 
 SSE = sum((y - y_hat)^2)
 SST = sum((y - mean(y))^2)
 SSR = sum((y_hat - mean(y))^2)
-1 - (SSE / SST)
+dim(X)
+1 - (SSE / SST) # It becomes just 100%
+
+
 ```
 
