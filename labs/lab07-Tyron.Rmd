@@ -11,16 +11,69 @@ Run three OLS models on the boston housing data using all available features:
 (2) where the response is the log base 10 of medv and
 (3) where the response is the square root of medv. 
 
-Compare the two models on oos se of the residuals. Use K = 5 to create a training-test split. Which model is better? 
+Compare the two models on oos se of the residuals. Use K = 5 to create a training-test split. Which model is better?
+Answer: The normal model with response medv did better.
 
 ```{r}
-#TO-DO
+set.seed(404)
+Boston = MASS::Boston
+x = Boston[,2:13]
+y = Boston[,13]
+K = 5
+train_test_split = (K - 1) / K # even splits 
+num_train_points = round(prop_train * nrow(Boston))  #Takes 80% of 506 to nearest hold number
+index_of_train = sample(x = 1:nrow(Boston), size = num_train_points, replace = FALSE) # 405 points
+index_of_test = setdiff(1:nrow(Boston), index_of_train) # the other 101 points 
+
+#check
+pacman::p_load(testthat)
+expect_equal(nrow(Boston), length(index_of_train) + length(index_of_test))
+
+x_train = x[index_of_train, ]
+x_test = x[index_of_test, ]
+
+y_train = y[index_of_train]
+y_test = y[index_of_test]
+
+
+Dtrain = data.frame(x= x_train, y = y_train) # Dtrain gets y and x
+
+model1 = lm(y ~ ., Dtrain)
+model2 = lm(log10(y) ~ . ,Dtrain)
+model3 = lm(sqrt(y) ~ . ,Dtrain)
+
+y_hat_g1 = predict(model1, data.frame(x = x_test))
+oos_se1 = sd(y_test - y_hat_g1)
+
+
+y_hat_g2 = predict(model2, data.frame(x = x_test))
+oos_se2 = sd(y_test - y_hat_g2)
+
+
+y_hat_g3 = predict(model3, data.frame(x = x_test))
+oos_se3 = sd(y_test - y_hat_g3)
+
+
+
+
+oos_se1
+oos_se2
+oos_se3
+
 ```
 
 When evaluating the models out of sample, did you ever extrapolate? Which predictions specifically in your test set were extrapolations? How "bad" were the exrapolations? 
 
+We didn't extrapolate strictly speaking since in this my example we were not out of range. In reality should make sure you aren't predicting on a range outside of what was used to build the model. 
+
 ```{r}
-#TO-DO
+max(y_test)
+max(y_train)
+
+min(y_test) 
+min(y_train)
+
+
 ```
 
 Regardless of the model that came out better, let's consider the response to be raw medv i.e. without taking a transformation. Run a model that includes all squared features (except `chas` which is binary). Does this model do better than vanilla OLS from question 1?
