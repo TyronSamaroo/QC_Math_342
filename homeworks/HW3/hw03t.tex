@@ -9,7 +9,7 @@
 
 \title{MATH 390.4 / 650.2 Spring 2020 Homework \#3}
 
-\author{Professor Adam Kapelner} %STUDENTS: write your name here
+\author{Tyron Samaroo} %STUDENTS: write your name here
 
 \iftoggle{professormode}{
 \date{Due noon Friday, March 13, 2020 under the door of KY604\\ \vspace{0.5cm} \small (this document last updated \currenttime~on \today)}
@@ -18,6 +18,7 @@
 \renewcommand{\abstractname}{Instructions and Philosophy}
 
 \begin{document}
+
 \maketitle
 
 \iftoggle{professormode}{
@@ -150,28 +151,168 @@ Then we can do
 \end{align*}
 \end{proof}
 
-\intermediatesubproblem{Consider the case where $p = 1$. Show that the solution for $\b$ you just derived is the same solution that we proved for simple regression in Lecture 8. That is, the first element of $\b$ is the same as $b_0 = \ybar - r \frac{s_y}{s_x}\xbar$ and the second element of $\b$ is $b_1 = r \frac{s_y}{s_x}$.} \spc{10}
+\intermediatesubproblem{Consider the case where $p = 1$. Show that the solution for $\b$ you just derived is the same solution that we proved for simple regression in Lecture 8. That is, the first element of $\b$ is the same as $b_0 = \ybar - r                    \frac{s_y}{s_x}\xbar$ and the second element of $\b$ is $b_1 = r \frac{s_y}{s_x}$.} \spc{10}
 
+When p=1 we use the lost function to fit the b's. We can use the SSE or sum of squared error formula and do some manipulation.
 \begin{align*}
-    \XtXinvXt\vec{y} = \vec{b} = {\begin{bmatrix}b_0\\b_1\end{bmatrix}} \\ 
+    \hat{y} = b_0 + b_1(x_i) \\
+    SSE &= \sum_{i=1}^{n}{(y_i - \hat{y_i})^2}\\
+    Substitute\ \hat{y}\\
+    &= \sum_{i=1}^{n}{y_i - (b_0 + b_1x_i)^2} \\
+    &=  \sum_{i=1}^{n}{y_i^2 + b_0^2 + b_1^2x_i^2 - 2{y_i}b_0 -2{y_i}b_1x_i + 2b_0b_1x_i} \\
+    &= \sum{y_i^2 + nb_0^2 + b_1^2}\sum{x_i^2 - 2n\bar{y}b_0 - 2b_1}\sum{x_iy_i + 2b_0_b_1n\bar{x}} \\
+    Then\ we\ take\ partial\ of\ b_0 \\ 
+    \partialop{\vec{b_0}}{SSE} &= 2nb_0 - 2n\bar{y} _ 2b_1n\bar{x} = 0 \\
+    \bold{b_0 &= \bar{y} - b_1\bar{x}} \\
+    Then\ we\ take\ partial\ of\ b_1 \\ 
+    \partialop{\vec{b_1}}{SSE} &= 2b_1\sum{x_i^2} - 2\sum{x_iy_i + 2b_0n\bar{x}} \\ 
+    Substitute\ in\ b_0 \\ 
+    &= b_1\sum{x_i^2} - \sum{x_iy_i} + (\bar{y} - b_1\bar{x})n\bar{x} \\ 
+    &= b_1\sum{x_i^2} - \sum{x_iy_i} + n\bar{x}\bar{y} - b_1n\bar{x}^2 \\ 
+    \bold{b_1}(\sum{x_i^2 - n\bar{x}^2}) &= \sum{x_iy_i} - n\bar{x}\bar{y} \\
+    \bold{b_1} &= \frac{\sum{x_iy_i} - n\bar{x}\bar{y}}{\sum{x_i^2 - n\bar{x}^2}} \\
+    \bold{b_1} &= \frac{(n - 1)S_xy}{(n - 1)S_x^2} \\
+    &= r\frac{S_y}{S_x} \\ 
+    &Now\ since\ b_1 = r\frac{S_y}{S_x}\ and\ b_0 = \bar{y} - b_1\bar{x}\\ &we\ substitute\ in\ b_0\ to\ get\ b_0 = \bar{y} - r\frac{S_y}{S_x}
 \end{align*}
 
 \easysubproblem{If $X$ is rank deficient, how can you solve for $\b$? Explain in English.} \spc{2}
 
-If X is rank deficient we cal solve for $\b$ by 
+If X is rank deficient we can't solve for $\b$ because it will not be invertable. In order to solve this problem you had to remove anything that is linearly dependent in X  
 
 \hardsubproblem{Prove $\rank{X} =\rank{X^\top X}$.}\spc{6}
+
+ 
+${\XtX}$ has the dimension of $\reals^p+1xp+1$ When ${\XtX}$ is full rank it is invertable and rank of X is the same, p + 1. All the columns are all linear independent so the rank of ${\XtX}$ and X are both p + 1
 
 \hardsubproblem{Given matrix $X \in \reals^{n \times (p+1)}$, full rank and first column consisting of the $\onevec_n$ vector, now consider cost multiples (\qu{weights}) $c_1, c_2, \ldots, c_n$ for each mistake $e_i$. As an example, previously the mistake for the 17th observation was $e_{17} := y_{17} - \hat{y}_{17}$ but now it would be $e_{17} := c_{17} (y_{17} - \hat{y}_{17})$.  Derive the weighted least squares solution $\b$. No need to rederive the facts about vector derivatives. Hints: (1) show that SSE is a quadratic form with the matrix $C$ in the middle (2) Split this matrix up into two pieces i.e. $C = C^{\half} C^{\half}$, distribute and then foil (3) note that a scalar value equals its own transpose and (4) use the vector derivative formulas.}\spc{10}
 
 
 \hardsubproblem{If $p=1$, prove $r^2 = R^2$ i.e. the linear correlation is the same as proportion of sample variance explained in a least squares linear model.}\spc{8}
 
+\begin{align*}
+    R^2 &= \frac{\text{SSR}}{\text{SST}} \\
+    &= \frac{\sum (\hat{y}_i - \ybar)^2}{\sum (y_i - \ybar)^2} \\
+    &= \frac{\sum \hat{y}_i^2 - n\ybar^2}{\sum (y_i - \ybar)^2} \\
+    &Subsitute\ in\ for\ \hat{y} = b_0 + b_1x_i \\ 
+    &= \frac{\sum (b_0 + b_1x_i)^2 - n\ybar^2}{(n-1)s_y^2} \\
+    &= \frac{\sum (b_0^2 + 2b_0b_1x_i + b_1^2x_i^2) - n\ybar^2}{(n-1)s_y^2} \\
+    &= \frac{nb_0^2 + 2b_0b_1 \sum x_i + b_1^2 \sum x_i^2 - n\ybar^2}{(n-1)s_y^2} \\
+    &= \frac{(\ybar - b_1\xbar)^2 n + 2(\ybar - b_1\xbar)b_1n\xbar + b_1^2 \sum x_i^2 - n\ybar^2}{(n-1)s_y^2} \\
+    &= \frac{b_1^2 \sum x_i^2 - b_1^2\xbar^2n}{(n-1)s_y^2} \\
+    &= \frac{b_1^2 (\sum x_i^2 - \xbar^2 n)}{(n-1)s_y^2} \\
+    &= \frac{r^2 \frac{s_y^2}{s_x^2} \sum (x_i - \xbar)^2}{(n-1)s_y^2} \\
+    &= r^2
+\end{align*}
+
 \intermediatesubproblem{Prove that $g(\bracks{1 ~\xbar_1~ \xbar_2~ \ldots~ \xbar_p}) =\bar{y}$ in OLS.}\spc{10}
+
+\begin{align*}
+    &Since\ \bar{y}\ is\ the\ average\ of\ all\ the\ y_i \\
+    \bar{y} &= \frac{1}{n} \sum{y_i} \\
+    & y_i\ can\ be\ b_0 + b_1x_1 + b_2x_2 ... b_p_x_p\ where\ each\ x\ is\ offset\ by\ some\ b \\ 
+    &= \frac{1}{n}\sum{b_0 + b_1x_1 + ... + b_p_x_p} \\ 
+    &= \frac{1}{n}\sum{b_0} + \frac{1}{n}\sum{b1_x_1} + ... + \frac{1}{n}\sum{b_px_p} \\
+    &= b_0 + b_1\bar{x_1} + ... + b_p\bar{x_p}\\
+    &Now\ b_0\ will\ be\ some\ constant\ vector\ \vec{1}.\\ 
+    &So\ the\ b's\ are\ apart\ of\ some\ function\ g\ that\ gives\\
+    \bar{y} &= g(\bracks{1 ~\xbar_1~ \xbar_2~ \ldots~ \xbar_p}) \\ 
+\end{align*}
 
 \intermediatesubproblem{Prove that $\bar{e} = 0$ in OLS.}\spc{10}
 
+\begin{align*}
+    \bar{e} &= \frac{1}{n}\sum{(y_i - \hat{y_i})} \\
+            &= \frac{1}{n}\sum{y_i} - \frac{1}{n}\sum{b_0 + b_1x_1 + ... + b_p_x_p} \\
+            &Multiplying\ each\ term\ by\ \frac{1}{n}\ would\ make\ the\ x's\ become\ average \bar{x}'s \\ 
+            &= \frac{1}{n}\sum{y_i} - {b_0 + b_1\bar{x_1} + ... + b_p\bar{x_p}} \\
+            &From\ part\ h\ we\ can\ see\ that\ \bar{y} =b_0 + b_1\bar{x_1} + ... + b_p\bar{x_p} \\
+            &= \bar{y} - \bar{y} \\
+            &= 0
+\end{align*}
+
 \hardsubproblem{If you model $\y$ with one categorical nominal variable that has levels $A, B, C$, prove that the OLS estimates look like $\ybar_A$ if $x = A$, $\ybar_B$ if $x = B$ and $\ybar_C$ if $x = C$. You can choose to use an intercept or not. Likely without is easier.}\spc{10}
+\begin{align*}
+    \Xt \X &= \begin{array}{c c c} 
+        A \\
+        B \\
+        C 
+    \end{array} \begin{bmatrix}
+        1 & \ldots & 1 & 0 & \ldots & \ldots & \ldots & \ldots & 0 \\
+        0 & \ldots & 0 & 1 & \ldots & 1 & 0 & \ldots & 0 \\
+        0 & \ldots & \ldots & \ldots & \ldots & 0 & 1 & \ldots & 1
+    \end{bmatrix}\begin{array}{c c}
+        \begin{array}{c c c}
+            A & B & C \\
+        \end{array} \\
+        \begin{bmatrix}
+            1 & 0 & 0 \\
+            \vdots & \vdots & \vdots \\
+            1 & 0 & 0 \\
+            0 & 1 & 0 \\
+            \vdots & \vdots & \vdots \\
+            0 & 1 & 0 \\
+            0 & 0 & 1 \\
+            \vdots & \vdots & \vdots \\
+            0 & 0 & 1
+        \end{bmatrix}
+    \end{array} \\
+    &This\ only\ leaves\ the\ diagonal\\
+    &= \begin{bmatrix}
+        n_A & 0 & 0 \\
+        0 & n_B & 0 \\
+        0 & 0 & n_C
+    \end{bmatrix} \\
+    &Now\ the\ inverse\ 
+    \XtXinv \\
+    \XtXinv &= \begin{bmatrix}
+        \frac{1}{n_A} & 0 & 0 \\
+        0 & \frac{1}{n_B} & 0 \\
+        0 & 0 & \frac{1}{n_C}
+    \end{bmatrix} \\
+    &Now\ the\ \Xt y \\
+    \Xt y &=\begin{array}{c c c} 
+        A \\
+        B \\
+        C 
+    \end{array}
+    \begin{bmatrix}
+        1 & \ldots & 1 & 0 & \ldots & \ldots & \ldots & \ldots & 0 \\
+        0 & \ldots & 0 & 1 & \ldots & 1 & 0 & \ldots & 0 \\
+        0 & \ldots & \ldots & \ldots & \ldots & 0 & 1 & \ldots & 1
+    \end{bmatrix} \begin{bmatrix}
+        y_1 \\
+        \vdots \\
+        y_n
+    \end{bmatrix} \\
+    &= \begin{bmatrix}
+        \sum y \indic{A = 1} \\
+        \sum y \indic{B = 1} \\
+        \sum y \indic{C = 1}
+    \end{bmatrix} \\
+    &Now\ put\ \XtXinv\ and\ \Xt y\ together\\
+    \XtXinvXt y&= 
+    \begin{bmatrix}
+        \frac{1}{n_A} & 0 & 0 \\
+        0 & \frac{1}{n_B} & 0 \\
+        0 & 0 & \frac{1}{n_C}
+    \end{bmatrix}
+    \begin{bmatrix}
+        \sum y \indic{A = 1} \\
+        \sum y \indic{B = 1} \\
+        \sum y \indic{C = 1}
+    \end{bmatrix} \\
+    &= \begin{bmatrix}
+        \frac{1}{n_A} \sum y \indic{A = 1} \\
+        \frac{1}{n_B} \sum y \indic{B = 1} \\
+        \frac{1}{n_C} \sum y \indic{C = 1}
+    \end{bmatrix} \\
+    &= \begin{bmatrix}
+        \ybar_A \\
+        \ybar_B \\
+        \ybar_C
+    \end{bmatrix}
+\end{align*}
 
 
 \end{enumerate}
@@ -184,11 +325,18 @@ If X is rank deficient we cal solve for $\b$ by
 
 \easysubproblem{Prove that $I_n$ is an orthogonal projection matrix $\forall n$.}\spc{3}
 
+{$I_n$ is an orthogonal project is it is both symmetric and idempotent. If {$I_n$^T = $I_n$} then it is symmetric. If $I_nI_n$ = $I_n$ then it is idempotent.}
+
 
 \easysubproblem{What subspace does $I_n$ project onto?}\spc{3}
 
+{$I_n$ projects onto the subspace \reals^N}
+ 
+
+
 \easysubproblem{Consider least squares linear regression using a design matrix $X$ with rank $p + 1$. What are the degrees of freedom in the resulting model? What does this mean?}\spc{6}
 
+The resulting model with have $p + 1$ degrees of freedom. 
 
 \intermediatesubproblem{If you are orthogonally projecting the vector $\y$ onto the column space of $X$ which is of rank $p + 1$, derive the formula for $\proj{\colsp{X}}{\y}$. Is this the same as in OLS?}\spc{6}
 
@@ -197,15 +345,74 @@ If X is rank deficient we cal solve for $\b$ by
 
 \intermediatesubproblem{Prove that $\Q^\top = \Q^{-1}$ where $\Q$ is an orthonormal matrix such that $\colsp{\Q} = \colsp{\X}$ and $\Q$ and $\X$ are both matrices $\in \reals^{n \times (p+1)}$. Hint: this is purely a linear algebra exercise.}\spc{6}
 
+\begin{align*}
+    \Q^\top &= \Q^{-1} => \Q^\top \Q = \Q^{-1} \Q = I_n \\
+    \Q^\top \Q &= \begin{bmatrix}
+        \vect{q}_1^\top \\
+        \vdots \\
+        \vect{q}_n^\top
+    \end{bmatrix} \begin{bmatrix}
+        \vect{q}_1 & \ldots & \vect{q}_n
+    \end{bmatrix} \\
+    &= \begin{bmatrix}
+        \vect{q}_1^\top \vect{q}_1 & 0 & \ldots & 0 \\
+        0 & \ddots & & \vdots \\
+        \vdots & & \ddots & 0 \\
+        0 & \ldots & 0 & \vect{q}_n^\top \vect{q}_n
+    \end{bmatrix} = I_n
+\end{align*}
+
 
 \intermediatesubproblem{Prove that the least squares projection $\H = \XXtXinvXt = \Q\Q^\top$.}\spc{10}
-
+\begin{align*}
+    \proj{v}{a} &= \frac{\vec{v}\vec{v}^T}{\norm{v}^2a}= H\vec{a} \\
+    &If\ \proj{v}{a}\ is\ in\ the\ column\ space\ of\ \V where\ V = \braces{\vec{v_1} \dots \vec{v_k}} \in \reals^{n \times k} \\
+    & \proj{v}{a}\ \in the\ column\ space\ of\ V\ then\ \proj{v}{a} = w_1\vec{v_1}+....+ w_k\vec{v_k} = V\vec{w} \\
+    &Now\ if\ V\ is\ orthogonal\\
+    \proj{v}{a}\ &= \proj{v_1}{a} + \proj{v_2}{a} \\
+    &= \left(\frac{\vec{v_1}\vec{v_1}^T}{\norm{v_1}^2} + \frac{\vec{v_2}\vec{v_2}^T}{\norm{v_2}^2}\right)\vec{a} \\
+    &If\ V\ is\ orthonormal\ length\ = 1\ then\\
+     \proj{v}{a} &= \left(\vec{v_1}\vec{v_1}^T + \vec{v_2}\vec{v_2}^T\right)\vec{a} \\
+     &= \left(\begin{bmatrix}
+        \vect{v}_1_1^2 \vect{v}_1 &\vect{v}_1_1\vect{v}_1_2   & \ldots & \vect{v}_1_1\vect{v}_1_n \\
+         & \ddots & & \vdots \\
+        \vdots & & \ddots  \\
+        \vect{v}_1_n\vect{v}_1_ & \ldots &  & \vect{v}_1^2 \vect{v}_n
+    \end{bmatrix}+ ...+
+    \begin{bmatrix}
+        \vect{v}_n_1^2 \vect{v}_1 &\vect{v}_n_1\vect{v}_n_2   & \ldots & \vect{v}_n_1\vect{v}_n_n \\
+         & \ddots & & \vdots \\
+        \vdots & & \ddots  \\
+        \vect{v}_n_n\vect{v}_n_1 & \ldots &  & \vect{v}_n^2 \vect{v}_n
+    \end{bmatrix}\right) \\
+    &= \left(\begin{bmatrix}\vec{v_1} & \vec{v_2} \dots \vec{v_n}\end{bmatrix}
+    \begin{bmatrix}
+        \vec{v_1}^T \\
+        \vdots \\
+        \vec{v_n}^T
+    \end{bmatrix} \\
+    \right)
+    &= \Q\Q^\top
+\end{align*}
 \intermediatesubproblem{Prove that an orthogonal projection onto the $\colsp{\Q}$ is the same as the sum of the projections onto each column of $\Q$.}\spc{8}
 
+\begin{align*}
+    \proj{Q}{\a} &= \Q(\Q^\top \Q)^{-1} \Q^\top \a \\
+    &= \Q I_n \Q^\top \a \\
+    &= \Q \Q^\top \a \\ 
+    &= \sum \vect{q}_i \vect{q}_i^\top \a \\
+    &= \sum \proj{\vect{q}_i}{\a}
+\end{align*}
+
 \easysubproblem{Prove that adding a new column to $\X$ results in SST remaining the same.}\spc{1}
-
-
-
+\begin{align*}
+    SST &= SSR + SSE \\
+    &\text{Adding another column does not change the formula since it its another y value "i"}\\
+    &\text{SSR is sum of the squared regression or how far the prediction is from the $\bar{y}$ and SSE is sum of squared } \\
+    SST &= (SSR + i) + (SSE - k) \\
+    &= SSR + SSE + i - i \\ 
+    &= SST
+\end{align*}
 
 
 \hardsubproblem{[MA] Prove that $\rank{\H} =\tr{\H}$. Hint: you will need to use facts about eigenvalues and the eigendecomposition of projection matrices that we learned in class.}\spc{10}
