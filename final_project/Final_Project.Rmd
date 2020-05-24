@@ -1,0 +1,350 @@
+---
+title: "Final_Project"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libaries 
+```{r}
+pacman::p_load(data.table,tidyverse,magrittr,YARF,skimr,plyr,tidyr,YARF,mltools,caret)
+```
+
+## Loading Data
+
+```{r}
+df= read.csv("housing_data_2016_2017.csv")
+head(df,1)
+
+hist(as.numeric(gsub('[$,]','',as.character(df$sale_price))))
+
+hist(df$sq_footage)
+```
+## Useful Summary of Data
+This gives a broad overview on the data,
+```{r}
+skim(df)
+```
+
+
+
+
+# There is a lot of data that is completely missing and some that is heavily missing. I decided to remove them. Some examples below.
+Keywords,NumberOfSimilarHITs, LigetimeInSeconds, RejectionTime,RequesterFeedback all completely missing. 
+ommon_charges(missing 1684),garage_exists(missing 1826)
+```{r}
+cat("Data has",nrow(df),"number of rows\n")
+cat("Data has",ncol(df), "number of columns")
+sort(colMeans(is.na(df)), decreasing = TRUE)
+```
+# Data Cleaning Remove all missing y
+```{r}
+
+df_drops = df %>% drop_na(sale_price)
+skim(df_drops) %>%
+  summary()
+
+```
+
+# Meaningful Features Data Cleaning
+Finding meaningful features. These are features I believe are meaningful. df_mutated has all the features that I will be using. I am not looking at whats missing yet or how the data looks like, just looking for features that would be best to predict sales price. 
+```{r}
+colnames(df)
+df_mutated = copy(df_drops)
+df_mutated %<>%
+  select(cats_allowed,common_charges,coop_condo,dining_room_type,dogs_allowed,fuel_type,garage_exists,maintenance_cost,model_type,total_taxes,approx_year_built,community_district_num,num_bedrooms,num_floors_in_building,num_full_bathrooms,num_total_rooms,sq_footage,sale_price,walk_score)
+sort(colMeans(is.na(df_mutated)), decreasing = TRUE)
+```
+
+# Feature Data Cleaning
+I am now looking more closely to the data.Looking at this there are too many types of model_types 875 different times from original data with NA sale price this seems difficult to deal with so I will remove this. I discarded data with more than 50% of missinginess.
+```{r}
+
+df_mutated_features = copy(df_mutated)
+df_mutated_features %<>%
+  select(-model_type,-total_taxes)#,-common_charges,-sq_footage)
+skim(df_mutated_features) %>%
+  summary()
+```
+
+```{r}
+
+sort(colMeans(is.na(df_mutated_features)), decreasing = TRUE)
+```
+
+# Oberservations Data Cleaning
+I am okay with the number of features I have now. Now Ill be cleaning the observations.  
+```{r}
+df_clean = copy(df_mutated_features)
+
+
+# Fixing y to be just yes and reducing factors to just yes and no.
+df_clean %<>%
+  mutate(cats_allowed = as.factor(ifelse(cats_allowed =='y' | cats_allowed =='yes','yes','no'))) %>%
+  
+#Fixing yes89 to just yes and reducing factors to just yes and no  
+  mutate(dogs_allowed = as.factor(ifelse(dogs_allowed =='yes89' | dogs_allowed =='yes','yes','no'))) %>%
+  
+  #mutate(sale_price = as.numeric(gsub('[$]','',as.character(df_clean$sale_price))))
+  mutate(sale_price = as.numeric(gsub('[$,]','',as.character(df_clean$sale_price))) )%>%
+  
+  mutate(common_charges = as.numeric(gsub('[$,]','',as.character(df_clean$common_charges)))) %>%
+  
+  mutate(maintenance_cost = as.numeric(gsub('[$,]','',as.character(df_clean$maintenance_cost)))) %>%
+  
+  mutate(garage_exists = ifelse(is.na(garage_exists), 0, 1))
+       
+#Very annoying this best way I found to combine two factor lvels 
+library(forcats)
+df_clean$fuel_type = fct_collapse(df_clean$fuel_type, other = c("other","Other"))
+
+
+
+# df_clean_sub = copy(df_clean)
+# df_clean_sub = df_clean_sub[df_clean_sub$sale_price < 700000,]
+# 
+# df_clean = df_clean_sub
+
+```
+
+
+```{r}
+max(df_clean$sq_footage, na.rm = TRUE)
+min(df_clean$sq_footage, na.rm = TRUE)
+max(df_clean$sale_price, na.rm = TRUE)
+min(df_clean$sale_price, na.rm = TRUE)
+hist(df_clean$sq_footage)
+hist(as.numeric(df_clean$common_charges))
+
+```
+
+```{r}
+#df_clean %<>%
+  #select(-sq_footage)
+
+
+```
+
+
+```{r}
+df_clean$fuel_type
+skim(df_clean)
+```
+
+
+```{r}
+M = tbl_df(apply(is.na(df_clean), 2, as.numeric))
+colnames(M) = paste("is_missing_", colnames(df_clean), sep = "")
+M %<>% 
+  select_if(function(x){sum(x) > 0})
+head(M)
+pacman::p_load(missForest)
+dfimp = missForest(data.frame(df_clean))$ximp
+df_final = cbind(dfimp, M)
+
+
+
+
+
+```
+
+```{r}
+skim(df_final)
+```
+```{r}
+
+# Tried to one hot incode data. MAJOR FAIL. R takes care of this since data is already factors
+df_dummy = copy(df_final)
+df_dummy$cats_allowed = model.matrix(~df_dummy$cats_allowed + 0)
+df_dummy$coop_condo = model.matrix(~df_dummy$coop_condo + 0)
+df_dummy$dining_room_type = model.matrix(~df_dummy$dining_room_type + 0)
+df_dummy$dogs_allowed = model.matrix(~df_dummy$dogs_allowed + 0)
+df_dummy$fuel_type = model.matrix(~df_dummy$fuel_type + 0)
+library(data.table,mltools)
+something = copy(df_final)
+
+something$fuel_type = cbind(model.matrix(~something$fuel_type))
+
+```
+
+
+
+
+```{r}
+skim(df_dummy)
+```
+
+```{r}
+
+set.seed(28)
+train.control <- trainControl(method = "repeatedcv", 
+                              number = 10, repeats = 3)
+prop_test = 0.10
+test_indices = sample(1 : nrow(df_final), round((prop_test) * nrow(df_final)))
+df_test = df_final[test_indices, ]
+y_test = df_test$sale_price
+X_test = cbind(1, df_test)
+#X_test$sale_price = NULL
+
+
+train_indices = setdiff(1 : nrow(df_final), test_indices)
+df_train = df_final[train_indices, ]
+y_train = df_train$sale_price
+X_train = cbind(1, df_train)
+#X_train$sale_price = NULL
+
+n_train = nrow(X_train)
+
+```
+
+
+```{r warning = FALSE}
+mod = train(sale_price ~ ., df_final, trControl = train.control,method = "lm")
+#mod = lm(sale_price ~ ., df_final)
+summary(mod)$r.squared
+summary(mod)$sigma
+y_hat = predict(mod,data.frame(X_test))
+
+e = y_test - y_hat
+Rsq = (var(y_test) - var(e)) / var(y_test)
+Rsq
+```
+
+
+```{r warning = FALSE}
+mod =lm(sale_price ~., data.frame(X_train),set.seed(28))
+summary(mod)$r.squared
+summary(mod)$sigma
+
+y_hat = predict(mod,data.frame(X_test))
+e = y_test - y_hat
+Rsq_oos = (var(y_test) - var(e)) / var(y_test)
+
+cat("My R Squared in sample is ",summary(mod)$r.squared, "My RSME is:", summary(mod)$sigma)
+cat("\nMy R Squared out of sample is ",Rsq_oos, "My RSME is:", sd(e))
+```
+
+# REGRESSION TREEES. 
+Here the trees overfit in sample but they did pretty decent out of sample but not better than OLS
+
+```{r}
+
+options(java.parameters = "-Xmx4000m")
+
+X_train_CART = X_train
+X_train_CART$sale_price = NULL
+
+X_test_CART = X_test
+X_test_CART$sale_price = NULL
+tree_model = YARFCART(X_train_CART, y_train, bootstrap_indices = 1 : n_train,calculate_oob_error = TRUE,seed = 28)
+#illustrate_trees(tree_model, max_depth = 4, open_file = TRUE)
+get_tree_num_nodes_leaves_max_depths(tree_model)
+
+
+#In Sample Error 
+y_hat_train = predict(tree_model,X_train)
+e_train = y_train - y_hat_train
+rsme_train = sd(e_train)
+rsquared_train = (var(y_train) - var(e_train)) / var(y_train)
+
+#Out of Sample Error 
+y_hat_test = predict(tree_model, X_test)
+e_test = y_test - y_hat_test
+rsme_test = sd(e_test)
+rsquared_test = (var(y_test) - var(e_test)) / var(y_test)
+
+cat("My R Squared in sample is ",rsquared_train, "My RSME is:", rsme_train)
+cat("\nMy R Squared out of sample is ",rsquared_test, "My RSME is:",rsme_test)
+```
+
+#RANDOM FOREST 
+
+```{r}
+set.seed(28)
+X_train_RF = X_train
+X_train_RF$sale_price = NULL
+
+X_test_RF = X_test
+X_test_RF$sale_price = NULL
+RF_model = YARF(X_train_RF, y_train, num_trees = 500, seed = 28 )
+
+
+#In Sample Error 
+y_hat_train = predict(RF_model,X_train)
+e_train = y_train - y_hat_train
+rsme_train = sd(e_train)
+rsquared_train = (var(y_train) - var(e_train)) / var(y_train)
+
+#Out of Sample Error 
+y_hat_test = predict(RF_model, X_test)
+e_test = y_test - y_hat_test
+rsme_test = sd(e_test)
+rsquared_test = (var(y_test) - var(e_test)) / var(y_test)
+
+cat("My R Squared in sample is ",rsquared_train, "My RSME is:", rsme_train)
+cat("\nMy R Squared out of sample is ",rsquared_test, "My RSME is:",rsme_test)
+```
+
+
+
+
+
+
+
+
+```{r warning=FALSE}
+# library(rpart)
+# library(rpart.plot)
+# fit = rpart(sale_price ~., data.frame(X_train),method="anova")
+# rpart.plot(fit)
+# summary(fit)
+# pred
+# 
+# in_e = y_train - pred
+# sd(in_e)
+# (var(y_train) - var(e)) / var(y_train)
+# e = y_test - pred
+# sd(e)
+# 
+# Rsq_oos = (var(y_test) - var(e)) / var(y_test)
+# #sd(e)
+# cat("My R Squared in sample is ",summary(mod)$r.squared, "My RSME is:", sd(in_e))
+# cat("\nMy R Squared out of sample is ",Rsq_oos, "My RSME is:", sd(e))
+# ```
+# ```{r}
+# library(randomForest)
+# control <- trainControl(method="cv", number=10)
+# 
+# 
+# RegressionTree1 = train(sale_price~., data=data.frame(X_train), method="rpart", trControl=control)
+# y_hat = predict(object = RegressionTree1,newdata = data.frame(X_test))
+# sqrt(mean((y_hat-y_test)^2))
+# 
+# RegressionTree = train(sale_price~., data=df_final, method="rpart", trControl=control)
+# print(RegressionTree)
+# 
+# 
+# ##
+# 
+# fit = rpart(sale_price ~., data.frame(X_train),method = 'anova')
+# printcp(fit)
+# rpart.plot(fit)
+# summary(fit) 
+# y_hat = predict(object = fit,newdata = data.frame(X_test))
+# sqrt(mean((y_hat-y_test)^2))
+
+```
+
+```{r}
+# RandomForest = train(sale_price~., data=df_final, method="rf", trControl=control)
+# print(RandomForest)
+# 
+# 
+
+
+```
+
