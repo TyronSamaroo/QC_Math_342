@@ -45,8 +45,9 @@ sort(colMeans(is.na(df)), decreasing = TRUE)
 ```{r}
 
 df_drops = df %>% drop_na(sale_price)
-skim(df_drops) %>%
-  summary()
+# skim(df_drops) %>%
+#   summary()
+skim(df_drops)
 
 ```
 
@@ -66,7 +67,7 @@ I am now looking more closely to the data.Looking at this there are too many typ
 
 df_mutated_features = copy(df_mutated)
 df_mutated_features %<>%
-  select(-model_type,-total_taxes)#,-common_charges,-sq_footage)
+  select(-model_type,-total_taxes, -community_district_num)#,-common_charges,-sq_footage)
 skim(df_mutated_features) %>%
   summary()
 ```
@@ -96,11 +97,17 @@ df_clean %<>%
   
   mutate(maintenance_cost = as.numeric(gsub('[$,]','',as.character(df_clean$maintenance_cost)))) %>%
   
-  mutate(garage_exists = ifelse(is.na(garage_exists), 0, 1))
+  mutate(garage_exists = ifelse(is.na(garage_exists), 0, 1)) 
+
+  #mutate(fuel_type = if(is.na(fuel_type)){fuel_type = 'other'})
        
-#Very annoying this best way I found to combine two factor lvels 
+
+  #Very annoying this best way I found to combine two factor lvels 
+  
+
 library(forcats)
 df_clean$fuel_type = fct_collapse(df_clean$fuel_type, other = c("other","Other"))
+#df_clean$dining_room_type = fct_collapse(df_clean$dining_room_type, other= c('other','none','dining area'))
 
 
 
@@ -108,18 +115,25 @@ df_clean$fuel_type = fct_collapse(df_clean$fuel_type, other = c("other","Other")
 # df_clean_sub = df_clean_sub[df_clean_sub$sale_price < 700000,]
 # 
 # df_clean = df_clean_sub
+ #df_clean = df_clean[df_clean$sq_footage < 2500,]
+#which(df_clean$sq_footage > 2500)
 
+#df_clean = df_clean[-136,]
 ```
 
 
 ```{r}
+options(scipen=999)
 max(df_clean$sq_footage, na.rm = TRUE)
 min(df_clean$sq_footage, na.rm = TRUE)
 max(df_clean$sale_price, na.rm = TRUE)
 min(df_clean$sale_price, na.rm = TRUE)
 hist(df_clean$sq_footage)
 hist(as.numeric(df_clean$common_charges))
-
+plot(y=df_clean$sale_price,df_clean$sq_footage, xlab ='Square Footage', ylab= 'Sales Price',)
+library(ggplot2)
+#plot(y=df_final$sale_price,df_clean$approx_year_built, xlab ='Approx Year Built', ylab= 'Sales Price',)
+#geom_rug(sides ="bl")
 ```
 
 ```{r}
@@ -131,12 +145,20 @@ hist(as.numeric(df_clean$common_charges))
 
 
 ```{r}
-df_clean$fuel_type
+
+#Fix issue when using MLR, Notice that there is missingness so ill set it to other
+df_clean$fuel_type[df_clean$fuel_type == 'none'] = 'other'
+df_clean$fuel_type[is.na(df_clean$fuel_type)] = 'other'
+df_clean$fuel_type = factor(df_clean$fuel_type)
+#df_cleandd = df_clean[df_clean$sq_footage < 2500,]
+#df_clean = subset(df_clean, df_clean$sq_footage <= 2500 & !is.na(df_clean$sq_footage))
+#df_clean$num_full_bathrooms = as.factor(df_clean$num_full_bathrooms)
 skim(df_clean)
 ```
 
 
 ```{r}
+set.seed(28)
 M = tbl_df(apply(is.na(df_clean), 2, as.numeric))
 colnames(M) = paste("is_missing_", colnames(df_clean), sep = "")
 M %<>% 
@@ -153,29 +175,69 @@ df_final = cbind(dfimp, M)
 ```
 
 ```{r}
-skim(df_final)
+#skim(df_final)
+
+
+
+ggplot(df_final, aes(x=sq_footage, y=sale_price)) + geom_point() +  theme_classic()  +
+  labs(
+       x="Square Footage", y = "Sale Price")
+
+ggplot(df_final, aes(x=num_full_bathrooms, y=sale_price)) + geom_point() +  theme_classic()  +
+  labs(
+       x="Number Full Bathrooms", y = "Sale Price")
+
+ggplot(df_final, aes(x=walk_score, y=sale_price)) + geom_point() +  theme_classic()  +
+  labs(
+       x="Walk Score", y = "Sale Price")
+
+ggplot(df_final, aes(x=common_charges, y=sale_price)) + geom_point() +  theme_classic()  +
+  labs(
+       x="Common Charges", y = "Sale Price")
+
+ggplot(df_final, aes(x=approx_year_built, y=sale_price)) + geom_point() +  theme_classic()  +
+  labs(
+       x="Year Built", y = "Sale Price")
+
+
+
 ```
+```{r}
+plot(y=df_clean$sale_price,df_clean$coop_condo, xlab ='Square Footage', ylab= 'Sales Price',)
+```
+
 ```{r}
 
 # Tried to one hot incode data. MAJOR FAIL. R takes care of this since data is already factors
-df_dummy = copy(df_final)
-df_dummy$cats_allowed = model.matrix(~df_dummy$cats_allowed + 0)
-df_dummy$coop_condo = model.matrix(~df_dummy$coop_condo + 0)
-df_dummy$dining_room_type = model.matrix(~df_dummy$dining_room_type + 0)
-df_dummy$dogs_allowed = model.matrix(~df_dummy$dogs_allowed + 0)
-df_dummy$fuel_type = model.matrix(~df_dummy$fuel_type + 0)
-library(data.table,mltools)
-something = copy(df_final)
+# df_dummy = copy(df_final)
+# df_dummy$cats_allowed = model.matrix(~df_dummy$cats_allowed + 0)
+# df_dummy$coop_condo = model.matrix(~df_dummy$coop_condo + 0)
+# df_dummy$dining_room_type = model.matrix(~df_dummy$dining_room_type + 0)
+# df_dummy$dogs_allowed = model.matrix(~df_dummy$dogs_allowed + 0)
+# df_dummy$fuel_type = model.matrix(~df_dummy$fuel_type + 0)
+# library(data.table,mltools)
+# something = copy(df_final)
+# 
+# something$fuel_type = cbind(model.matrix(~something$fuel_type))
 
-something$fuel_type = cbind(model.matrix(~something$fuel_type))
+```
 
+```{r}
+colnames(df_final)
 ```
 
 
 
+```{r}
+
+pairs(~sale_price+num_full_bathrooms+coop_condo+num_floors_in_building+sq_footage+common_charges+approx_year_built,data=df_clean, 
+   main="Scatterplot Matrix")
+```
+```{r}
+skim(df_final)
+```
 
 ```{r}
-skim(df_dummy)
 ```
 
 ```{r}
@@ -203,20 +265,17 @@ n_train = nrow(X_train)
 
 
 ```{r warning = FALSE}
-mod = train(sale_price ~ ., df_final, trControl = train.control,method = "lm")
-#mod = lm(sale_price ~ ., df_final)
+#mod = train(sale_price ~ ., df_final, trControl = train.control,method = "lm")
+mod = lm(sale_price ~ ., df_final)
 summary(mod)$r.squared
 summary(mod)$sigma
-y_hat = predict(mod,data.frame(X_test))
-
-e = y_test - y_hat
-Rsq = (var(y_test) - var(e)) / var(y_test)
-Rsq
+summary(mod)$sigma
 ```
 
 
 ```{r warning = FALSE}
-mod =lm(sale_price ~., data.frame(X_train),set.seed(28))
+set.seed(28)
+mod =lm(sale_price ~., data.frame(df_train),set.seed(28))
 summary(mod)$r.squared
 summary(mod)$sigma
 
@@ -225,8 +284,35 @@ e = y_test - y_hat
 Rsq_oos = (var(y_test) - var(e)) / var(y_test)
 
 cat("My R Squared in sample is ",summary(mod)$r.squared, "My RSME is:", summary(mod)$sigma)
-cat("\nMy R Squared out of sample is ",Rsq_oos, "My RSME is:", sd(e))
+cat("\nMy R Squared out of sample is ",Rsq_oos, "My RSME is:", sd(e)) 
+#plot(y_test,y_hat)
+summary(mod)$coefficients
 ```
+
+```{r}
+sort(summary(mod)$coefficients)
+```
+
+
+
+
+```{r}
+# pacman::p_load(ggplot2, mlr3,mlr)
+# library(mlr3)
+# library(mlr)
+# modeling_task = makeRegrTask(data=data.frame(X_train), target='sale_price')
+# algorithm = makeLearner("regr.lm")
+# validation = makeResampleDesc("CV", iters = 5)
+# #Having issues with fuel_type none
+# res = resample(algorithm, modeling_task, validation,measures = list(rmse))
+# res
+# #average rsme somehow worse than above
+# mean(res$measures.test$rmse)
+```
+
+
+
+
 
 # REGRESSION TREEES. 
 Here the trees overfit in sample but they did pretty decent out of sample but not better than OLS
@@ -240,10 +326,9 @@ X_train_CART$sale_price = NULL
 
 X_test_CART = X_test
 X_test_CART$sale_price = NULL
-tree_model = YARFCART(X_train_CART, y_train, bootstrap_indices = 1 : n_train,calculate_oob_error = TRUE,seed = 28)
-#illustrate_trees(tree_model, max_depth = 4, open_file = TRUE)
+tree_model = YARFCART(X_train_CART, y_train, bootstrap_indices = 1 : n_train, calculate_oob_error = TRUE,seed = 28)
+illustrate_trees(tree_model, max_depth = 4, open_file = TRUE,margin_in_px=200,font_size=20,length_in_px_per_half_split=45)
 get_tree_num_nodes_leaves_max_depths(tree_model)
-
 
 #In Sample Error 
 y_hat_train = predict(tree_model,X_train)
@@ -259,18 +344,80 @@ rsquared_test = (var(y_test) - var(e_test)) / var(y_test)
 
 cat("My R Squared in sample is ",rsquared_train, "My RSME is:", rsme_train)
 cat("\nMy R Squared out of sample is ",rsquared_test, "My RSME is:",rsme_test)
+plot(y_test,y_hat)
+```
+```{r}
+library(rpart,mlr)
+library("rpart.plot")
+rpart_fit = rpart(sale_price ~., data.frame(X_train),method="anova")
+rpart.plot(rpart_fit,box.col=c("grey", "white"))
+rpart_fit
 ```
 
-#RANDOM FOREST 
-
 ```{r}
-set.seed(28)
+library(mlr,mlr3)
+modeling_task = makeRegrTask(data=data.frame(X_train), target='sale_price')
+algorithm = makeLearner("regr.rpart")
+validation = makeResampleDesc("CV", iters = 5)
+#Having issues with fuel_type none
+res = resample(algorithm, modeling_task, validation,measures = list(rmse))
+res
+#average rsme somehow worse than above
+mean(res$measures.test$rmse)
+
+```
+```{r}
 X_train_RF = X_train
 X_train_RF$sale_price = NULL
 
 X_test_RF = X_test
 X_test_RF$sale_price = NULL
-RF_model = YARF(X_train_RF, y_train, num_trees = 500, seed = 28 )
+Bag_model = YARFBAG(X_train_RF, y_train, num_trees = 250, seed = 1 ,calculate_oob_error = TRUE)
+Bag_model$rmse_oob
+y_hat_test_bag = predict(Bag_model, X_test)
+s_e_bag = sd(y_test - y_hat_test_bag)
+s_e_bag
+#In Sample Error 
+y_hat_train = predict(Bag_model,X_train)
+e_train = y_train - y_hat_train
+rsme_train = sd(e_train)
+rsquared_train = (var(y_train) - var(e_train)) / var(y_train)
+
+#Out of Sample Error 
+y_hat_test = predict(Bag_model, X_test)
+e_test = y_test - y_hat_test
+rsme_test = sd(e_test)
+rsquared_test = (var(y_test) - var(e_test)) / var(y_test)
+
+cat("My R Squared in sample is ",rsquared_train, "My RSME is:", rsme_train,"\n" )
+cat("\nMy R Squared out of sample is ",rsquared_test, "My RSME is:",rsme_test,"\n" )
+
+df_final_bag_all = copy(df_final)
+y_all = df_final_bag_all$sale_price
+df_final_bag_all$sale_price = NULL
+mod_bag_all = YARFBAG(df_final_bag_all, y_all, num_trees = 250, seed = 28)
+mod_bag_all$rmse_oob
+
+```
+
+# RANDOM FOREST 
+
+```{r}
+set.seed(2)
+X_train_RF = X_train
+X_train_RF$sale_price = NULL
+
+
+X_test_RF = X_test
+X_test_RF$sale_price = NULL
+
+
+copy_df = copy(df_final)
+total_dfX = copy_df
+total_dfY = copy_df$sale_price
+total_dfX$sale_price = NULL
+RF_other = YARF(total_dfX, total_dfY, num_trees = 250, seed = 1 ,calculate_oob_error = TRUE)
+RF_model = YARF(X_train_RF, y_train, num_trees = 250, seed = 1 ,calculate_oob_error = TRUE)
 
 
 #In Sample Error 
@@ -285,8 +432,44 @@ e_test = y_test - y_hat_test
 rsme_test = sd(e_test)
 rsquared_test = (var(y_test) - var(e_test)) / var(y_test)
 
-cat("My R Squared in sample is ",rsquared_train, "My RSME is:", rsme_train)
-cat("\nMy R Squared out of sample is ",rsquared_test, "My RSME is:",rsme_test)
+cat("My R Squared in sample is ",rsquared_train, "My RSME is:", rsme_train,"\n" )
+cat("\nMy R Squared out of sample is ",rsquared_test, "My RSME is:",rsme_test,"\n" )
+cat("OOB RSME:",RF_model$rmse_oob,"\n" )
+
+cat("GAIN OVER TREES",(mod_bag_all$rmse_oob - RF_model$rmse_oob) / mod_bag_all$rmse_oob * 100, "%\n" )
+RF_model$rmse_oob
+RF_model
+
+ggplot( data.frame(y_test,y_hat_test),aes(x=y_test, y=y_hat_test)) + geom_point() + theme_classic()   +
+  labs(x="Y Test", y = "Y Hat Test") + geom_abline() +xlim(NA,750000)
+
+
+
+```
+
+```{r}
+set.seed(28)
+modeling_task = makeRegrTask(data=data.frame(X_train), target='sale_price')
+algorithm = makeLearner("regr.randomForest")
+validation = makeResampleDesc("CV", iters = 5)
+#Having issues with fuel_type none
+res = resample(algorithm, modeling_task, validation,measures = list(rmse))
+res
+#average rsme somehow worse than above
+mean(res$measures.test$rmse)
+
+```
+
+```{r}
+set.seed(28)
+modeling_task = makeRegrTask(data=data.frame(X_train), target='sale_price')
+algorithm = makeLearner("regr.randomForest")
+holdout = makeResampleDesc("Holdout")
+#Having issues with fuel_type none
+res = resample(algorithm, modeling_task, holdout,measures = list(rmse))
+res
+#average rsme somehow worse than above
+mean(res$measures.test$rmse)
 ```
 
 
