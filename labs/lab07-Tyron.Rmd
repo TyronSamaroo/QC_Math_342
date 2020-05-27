@@ -1,7 +1,9 @@
 ---
 title: "Lab 7"
-author: "Your Name Here"
-output: pdf_document
+author: "Tyron Samaroo"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
 date: "7:09PM April 8, 2020"
 ---
 
@@ -21,7 +23,7 @@ x = Boston[,2:13]
 y = Boston[,13]
 K = 5
 train_test_split = (K - 1) / K # even splits 
-num_train_points = round(prop_train * nrow(Boston))  #Takes 80% of 506 to nearest hold number
+num_train_points = round(train_test_split * nrow(Boston))  #Takes 80% of 506 to nearest hold number
 index_of_train = sample(x = 1:nrow(Boston), size = num_train_points, replace = FALSE) # 405 points
 index_of_test = setdiff(1:nrow(Boston), index_of_train) # the other 101 points 
 
@@ -78,14 +80,27 @@ min(y_train)
 
 Regardless of the model that came out better, let's consider the response to be raw medv i.e. without taking a transformation. Run a model that includes all squared features (except `chas` which is binary). Does this model do better than vanilla OLS from question 1?
 
+Yes this model do much better than the vanilla OLD from question as it is a more complex model including polynomials. 
+
 ```{r}
-#TO-DO
+colnames(Boston)
+squared_model_feature = lm(medv ~ poly(crim,2) + poly(zn,2)+ poly(indus,2) + chas + poly(nox,2) + poly(rm,2) + poly(age,2) + 
+                             poly(dis,2) + poly(rad,2) + poly(tax,2) + poly(ptratio,2) + poly(black,2) + poly(lstat,2),Boston ) 
+
+summary(squared_model_feature)$sigma
+summary(squared_model_feature)$r.sq
+
 ```
 
 Run a model that includes all polynomail functions of degree 3 of all features (except `chas` which is binary). Does this model do better than the degree 2 polynomial function of the previous question?
 
+This model does better than the degree 2 polynomial function from previous question
+
 ```{r}
-#TO-DO
+cubed_model_feature = lm(medv ~ poly(crim,3) + poly(zn,3)+ poly(indus,3) + chas + poly(nox,3) + poly(rm,3) + poly(age,3) + 
+                             poly(dis,3) + poly(rad,3) + poly(tax,3) + poly(ptratio,3) + poly(black,3) + poly(lstat,3),Boston ) 
+summary(cubed_model_feature)$sigma
+summary(cubed_model_feature)$r.sq
 ```
 
 Use polynomial regression to perfectly fitting the following data:
@@ -96,13 +111,22 @@ set.seed(1984)
 x = runif(n, 0, 10)
 y = 5 + 2 * x + rnorm(n)
 
-#TO-DO
+
+mod = lm(y ~ poly(x,9, raw = TRUE))
+summary(mod)$sigma
+summary(mod)$r.squared
+summary(mod)
 ```
 
 Illustrate Runge's phenomenon in this model by scatterplotting the data with $g(x)$ overlaid in green.
 
 ```{r}
-#TO-DO
+pacman::p_load(ggplot2)
+
+  ggplot(,aes(x= x, y=y)) + geom_point() +  geom_smooth(formula = y ~ poly(x,9, raw = TRUE),method = "lm",col = "green")
+  
+  
+
 ```
 
 For the rest of this assignment, I highly recommend using the [ggplot cheat sheet](https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf) as a reference resource. You will see questions that say "Create the best-looking plot". Among other things you may choose to do, remember to label the axes using real English, provide a title, subtitle. You may want to pick a theme and color scheme that you like and keep that constant throughout this lab. The default is fine if you are running short of time.
@@ -110,68 +134,97 @@ For the rest of this assignment, I highly recommend using the [ggplot cheat shee
 Load up the `GSSvocab` dataset in package `carData` as `X` and drop all observations with missing measurements. Briefly summarize the documentation on this dataset. What is the data type of each variable? What is the response variable?
 
 ```{r}
-#TO-DO
+pacman::p_load(carData,skimr)
+
+X = GSSvocab
+
+# There is 1785 NA's
+table(is.na(X))
+
+X = na.omit(X)
+
+# No more NA's
+table(is.na(X))
+#X
+
+# There are 5 factor variables year,gender,nativeBorn, ageGroup, educGroup and 3 numeric vocav,age,educ
+skim(X)
 ```
 
 Create two different plots and identify the best-looking plot you can to examine the `age` variable. Save the best looking plot as an appropriately-named PDF.
 
 ```{r}
-#TO-DO
+ggplot(X, aes(x=age)) + geom_histogram(color="black", fill="white")
+
+ggsave("age_histogram.pdf")
+
+ggplot(X, aes(age, fill = educGroup)) + geom_density()
+ggsave("age_density.pdf")
+
 ```
 
 Create two different plots and identify the best looking plot you can to examine the `vocab` variable. Save the best looking plot as an appropriately-named PDF.
 
 ```{r}
-#TO-DO
+ggplot(X, aes(x=vocab)) + geom_histogram(color="black", fill="white")
+
+ggplot(X, aes(x=vocab,fill = educGroup)) + geom_density()
+ggsave("vocab_density.pdf")
 ```
 
 Create the best-looking plot you can to examine the `ageGroup` variable by `gender`. Does there appear to be an association? There are many ways to do this.
 
 ```{r}
-#TO-DO
+ggplot(X, aes(x=ageGroup,fill = gender)) + geom_density()
 ```
 
 Create the best-looking plot you can to examine the `vocab` variable by `age`. Does there appear to be an association?
 
 ```{r}
-#TO-DO
+# As age increased vocab decreases
+ggplot(X, aes(x=age,y = vocab)) + geom_bar(stat="identity")
 ```
 
 Add an estimate of $f(x)$ using the smoothing geometry to the previous plot. Does there appear to be an association now?
 
 ```{r}
-#TO-DO
+ggplot(X, aes(age,vocab)) + geom_point() + geom_smooth() 
 ```
 
 Using the plot from the previous question, create the best looking overloading with variable `gender`. Does there appear to be an interaction of `gender` and `age`?
 
 ```{r}
-#TO-DO
+above = ggplot(X, aes(age,vocab)) + geom_point() + geom_smooth() 
+
+above + aes(col=gender)
 ```
 
 
 Using the plot from the previous question, create the best looking overloading with variable `nativeBorn`. Does there appear to be an interaction of `nativeBorn` and `age`?
 
 ```{r}
-#TO-DO
+above + aes(col=nativeBorn)
 ```
 
 Create two different plots and identify the best-looking plot you can to examine the `vocab` variable by `educGroup`. Does there appear to be an association?
 
 ```{r}
-#TO-DO
+ggplot(X, aes(x=vocab,fill = educGroup)) + geom_density()
 ```
 
 Using the best-looking plot from the previous question, create the best looking overloading with variable `gender`. Does there appear to be an interaction of `gender` and `educGroup`?
 
 ```{r}
-#TO-DO
+above_1 = ggplot(X, aes(x=vocab,fill = educGroup)) + geom_density()
+
+above_1 + aes(col=gender)
 ```
 
 Using facets, examine the relationship between `vocab` and `ageGroup`. You can drop year level `(Other)`. Are we getting dumber?
 
 ```{r}
-#TO-DO
+ggplot(X, aes(x=ageGroup,y = vocab)) + geom_bar(stat="identity")
+# Staying about the same
 ```
 
 We will now be getting some experience with speeding up R code using C++ via the `Rcpp` package.
